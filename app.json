@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "AfriMarket",
+    "slug": "afrimarket-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#E62E04"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.afrimarket.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#E62E04"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AfriMarket a besoin d'accéder à vos photos pour ajouter des images de produits.",
+          "cameraPermission": "AfriMarket a besoin d'accéder à l'appareil photo pour prendre des photos de produits."
+        }
+      ]
+    ]
+  }
+}
