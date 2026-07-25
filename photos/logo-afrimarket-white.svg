@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100">
+  <rect width="320" height="100" rx="24" fill="#fff"/>
+  <path d="M38 22 L60 22 L80 78 L56 78 Z" fill="#009E49"/>
+  <path d="M34 30 L50 30 L50 44 L34 44 Z" fill="#FCD116"/>
+  <path d="M68 28 L84 28 L84 42 L68 42 Z" fill="#EF2B2D"/>
+  <text x="112" y="60" font-family="Montserrat, sans-serif" font-weight="800" font-size="38" fill="#101010">AfriMarket</text>
+</svg>

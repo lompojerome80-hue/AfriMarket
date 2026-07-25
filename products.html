@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Catalogue AfriMarket : mode, artisanat, électronique et beauté burkinabè." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <title>Produits | AfriMarket</title>
+</head>
+
+<body>
+  <header>
+    <a class="brand" href="index.html">
+      <img src="photos/logo-afrimarket.svg" alt="Logo AfriMarket" />
+      <span>AfriMarket</span>
+    </a>
+    <div class="search" id="searchIcon">
+      <input type="text" placeholder="Rechercher un produit, une marque ou une catégorie..." />
+    </div>
+    <nav class="nav-menu" id="menu">
+      <button class="navCloseBtn" aria-label="Fermer le menu"><i class="uil uil-times"></i></button>
+      <ul>
+        <li><a href="index.html">Accueil</a></li>
+        <li><a href="products.html">Produits</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="panier.html">Panier</a></li>
+        <li><img src="photos/icon-bf-flag.svg" alt="Drapeau Burkina Faso" class="flag-icon" /></li>
+        <li class="currency">FCFA</li>
+      </ul>
+    </nav>
+    <button class="navOpenBtn" id="navOpenBtn" aria-label="Ouvrir le menu"><i class="uil uil-bars"></i></button>
+    <button class="cartBtn" id="navOpenPanier" aria-label="Ouvrir le panier"><img src="photos/icon-park-outline_shopping.png" alt="Panier" /></button>
+  </header>
+
+  <div class="sidebar" id="sidebar">
+    <div class="cart-header">
+      <div>
+        <span>Mon panier</span>
+        <strong>3 articles</strong>
+      </div>
+      <button class="close-btn" id="closeSidebarBtn" aria-label="Fermer le panier"><i class="uil uil-times"></i></button>
+    </div>
+    <div class="cart-content">
+      <ul class="pro-list">
+        <li class="pro-item">
+          <div class="pro-info">
+            <img src="photos/picc1.jpeg" alt="Sac en pagne" />
+            <div class="pro-details">
+              <span class="pro-name">Sac en pagne</span>
+              <span class="pro-payment-method">Orange Money</span>
+              <p class="pro-price" id="appliedCount1">12 000 FCFA</p>
+            </div>
+          </div>
+          <div class="pro-actions">
+            <div class="pro-icons">
+              <img src="photos/heart.png" alt="Ajouter aux favoris" />
+              <img src="photos/ic_outline-delete.png" alt="Supprimer du panier" class="remove-pro" />
+            </div>
+            <div class="count-pro">
+              <div class="count" data-product="1">-</div>
+              <span id="countValue1" data-product="1">1</span>
+              <div class="count-2" data-product="1">+</div>
+            </div>
+          </div>
+        </li>
+        <li class="pro-item">
+          <div class="pro-info">
+            <img src="photos/picc2.jpeg" alt="Sandales artisanales" />
+            <div class="pro-details">
+              <span class="pro-name">Sandales artisanales</span>
+              <span class="pro-payment-method">Carte bancaire</span>
+              <p class="pro-price" id="appliedCount2">8 900 FCFA</p>
+            </div>
+          </div>
+          <div class="pro-actions">
+            <div class="pro-icons">
+              <img src="photos/heart.png" alt="Ajouter aux favoris" />
+              <img src="photos/ic_outline-delete.png" alt="Supprimer du panier" class="remove-pro" />
+            </div>
+            <div class="count-pro">
+              <div class="count" data-product="2">-</div>
+              <span id="countValue2" data-product="2">1</span>
+              <div class="count-2" data-product="2">+</div>
+            </div>
+          </div>
+        </li>
+        <li class="pro-item">
+          <div class="pro-info">
+            <img src="photos/picc3.jpeg" alt="Huile de karité" />
+            <div class="pro-details">
+              <span class="pro-name">Huile de karité pure</span>
+              <span class="pro-payment-method">Moov Money</span>
+              <p class="pro-price" id="appliedCount3">6 500 FCFA</p>
+            </div>
+          </div>
+          <div class="pro-actions">
+            <div class="pro-icons">
+              <img src="photos/heart.png" alt="Ajouter aux favoris" />
+              <img src="photos/ic_outline-delete.png" alt="Supprimer du panier" class="remove-pro" />
+            </div>
+            <div class="count-pro">
+              <div class="count" data-product="3">-</div>
+              <span id="countValue3" data-product="3">1</span>
+              <div class="count-2" data-product="3">+</div>
+            </div>
+          </div>
+        </li>
+      </ul>
+      <div class="cart-summary">
+        <div><span>Total</span><strong id="total">27 400 FCFA</strong></div>
+        <a href="panier.html" class="button primary">Voir le panier</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay"></div>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">Boutique</span>
+        <h1>Une sélection locale en FCFA.</h1>
+        <p>Explorez nos catégories mode, artisanat, électronique et beauté.</p>
+      </div>
+    </section>
+
+    <section class="featured-products">
+      <div class="section-header">
+        <h2>Catalogue de produits</h2>
+        <p>Des offres composées par des vendeurs burkinabè.</p>
+      </div>
+      <div class="list-products">
+        <article class="info-product">
+          <div class="product">
+            <a href="detail.html"><img src="photos/picc1.jpeg" alt="Sac en pagne" /></a>
+          </div>
+          <div class="desc">
+            <span>12 000 FCFA</span>
+            <span class="chiffre">15 000 FCFA<div class="drop-price"></div></span>
+            <p class="desc-text">Sac en pagne tissé</p>
+            <p class="desc-text">Confort et design local.</p>
+          </div>
+        </article>
+        <article class="info-product">
+          <div class="product">
+            <a href="detail.html"><img src="photos/picc2.jpeg" alt="Sandales artisanales" /></a>
+          </div>
+          <div class="desc">
+            <span>8 900 FCFA</span>
+            <span class="chiffre">11 000 FCFA<div class="drop-price"></div></span>
+            <p class="desc-text">Sandales artisanales</p>
+            <p class="desc-text">Fait à la main au Faso.</p>
+          </div>
+        </article>
+        <article class="info-product">
+          <div class="product">
+            <a href="detail.html"><img src="photos/picc3.jpeg" alt="Huile de karité" /></a>
+          </div>
+          <div class="desc">
+            <span>6 500 FCFA</span>
+            <span class="chiffre">8 200 FCFA<div class="drop-price"></div></span>
+            <p class="desc-text">Huile de karité pure</p>
+            <p class="desc-text">Soin naturel et traditionnel.</p>
+          </div>
+        </article>
+        <article class="info-product">
+          <div class="product">
+            <a href="detail.html"><img src="photos/picc4.jpeg" alt="Bijoux artisanaux" /></a>
+          </div>
+          <div class="desc">
+            <span>13 500 FCFA</span>
+            <span class="chiffre">17 000 FCFA<div class="drop-price"></div></span>
+            <p class="desc-text">Bijoux artisanaux</p>
+            <p class="desc-text">Créations uniques du Sahel.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <h3>AfriMarket</h3>
+        <p>Marché digital burkinabè pour tous les jours.</p>
+      </div>
+      <div>
+        <h4>Liens</h4>
+        <ul>
+          <li><a href="index.html">Accueil</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="panier.html">Panier</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
