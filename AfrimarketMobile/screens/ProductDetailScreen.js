@@ -165,7 +165,7 @@ export default function ProductDetailScreen() {
       setRevComment('');
       await reloadReviews();
     } else {
-      Alert.alert('Erreur', "Impossible de publier l'avis.");
+      Alert.alert('Avis non publié', res.error || 'Impossible de publier l\'avis.');
     }
   };
 

@@ -203,23 +203,42 @@ async function _getLocal(slug) {
 }
 
 export async function addAvis(slug, avisData) {
+  const userKeyVal = avisData.userKey || null;
+  const ownerKey = await getOwner(slug);
+  if (userKeyVal && ownerKey && userKeyVal === ownerKey) {
+    return { ok: false, error: 'Le vendeur ne peut pas noter sa propre boutique' };
+  }
+
   if (await isSupabaseAvailable()) {
     try {
       const { data: shop } = await supabase.from('boutiques').select('id').eq('slug', slug).maybeSingle();
-      if (!shop) return false;
+      if (!shop) return { ok: false, error: 'Boutique introuvable' };
+      if (userKeyVal) {
+        const { data: existing } = await supabase
+          .from('avis')
+          .select('id')
+          .eq('boutique_id', shop.id)
+          .eq('user_key', userKeyVal)
+          .maybeSingle();
+        if (existing) return { ok: false, error: 'Vous avez déjà noté cette boutique' };
+      }
       const { error } = await supabase.from('avis').insert({
         boutique_id: shop.id, nom: avisData.nom, note: avisData.note, comment: avisData.comment,
+        user_key: userKeyVal || null,
       });
-      return !error;
+      return error ? { ok: false, error: error.message } : { ok: true };
     } catch { _sbOk = false; }
   }
   const avis = await lsGet('afrimarket_avis_' + slug);
+  if (userKeyVal && avis.some((a) => a.userKey && a.userKey === userKeyVal)) {
+    return { ok: false, error: 'Vous avez déjà noté cette boutique' };
+  }
   avis.unshift({
     id: 'av_' + Date.now(), nom: avisData.nom, note: Number(avisData.note),
-    comment: avisData.comment, created_at: new Date().toISOString(),
+    comment: avisData.comment, userKey: userKeyVal || null, created_at: new Date().toISOString(),
   });
   await lsSave('afrimarket_avis_' + slug, avis);
-  return true;
+  return { ok: true };
 }
 
 export async function checkBoutiquePassword(slug, password) {

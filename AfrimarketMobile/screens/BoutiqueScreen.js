@@ -382,11 +382,17 @@ export default function BoutiqueScreen() {
 
     setSubmitting(true);
     try {
-      await addAvis(slug, {
+      const res = await addAvis(slug, {
         nom: (reviewName.trim() || u.name || 'Client'),
         note: reviewRating,
         comment: reviewComment.trim(),
+        userKey: userKey(u),
       });
+      if (!res.ok) {
+        Alert.alert('Avis déjà publié', res.error || 'Impossible de publier l\'avis.');
+        setSubmitting(false);
+        return;
+      }
       Alert.alert('Merci !', 'Votre avis a été publié.');
       setReviewRating(0);
       setReviewComment('');

@@ -33,6 +33,9 @@ export async function addProductReview({ productId, userKey, userName, note, com
     }
     const map = JSON.parse(await AsyncStorage.getItem(PROD_REVIEWS_KEY)) || {};
     const list = map[String(productId)] || [];
+    if (userKey && list.some((r) => r.userKey && r.userKey === userKey)) {
+      return { ok: false, error: 'Vous avez déjà noté ce produit' };
+    }
     list.unshift({
       id: fid('pr_'),
       productId: String(productId),
