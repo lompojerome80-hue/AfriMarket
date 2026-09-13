@@ -1,4 +1,10 @@
 {
+  "name": "afrimarket",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server/index.js"
+  },
   "dependencies": {
     "@supabase/server": "^1.4.1",
     "@supabase/ssr": "^0.12.4",
