@@ -1,0 +1,31 @@
+# Render Blueprint - AfriMarket
+# Déployé via : dashboard.render.com -> New -> Blueprint
+# Le serveur (server/) est zéro-dépendance : node index.js suffit.
+
+services:
+  - type: web
+    name: afrimarket-server
+    runtime: node
+    rootDir: AfrimarketMobile/server
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.4
+      - key: PORT
+        value: 4000
+      # Démo/bêta (sans CinetPay) : le serveur tourne en MODE MOCK.
+      - key: PUSH_API_KEY
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
+      # --- Renseigner après création pour activer CinetPay réel ---
+      - key: CINETPAY_API_KEY
+        sync: false
+      - key: CINETPAY_API_PASSWORD
+        sync: false
+      - key: CINETPAY_COUNTRY
+        value: BF
+      - key: CINETPAY_API_BASE
+        value: https://api.cinetpay.net

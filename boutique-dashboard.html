@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tableau de bord vendeur — AfriMarket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  :root{
+    --nav-dark:#14132B; --nav-dark-2:#1E1D3E; --piment:#E62E04; --piment-lt:#FF6B3D;
+    --or:#F2A93B; --kola:#1E7A46; --ink:#1A1A1A; --muted:#62606F; --line:#E7E4EE;
+    --paper:#FFFFFF; --paper-2:#F3F3F3; --radius:10px; --maxw:1000px;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:#F0F0F5; color:var(--ink); font-family:'Inter',sans-serif; font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  a{ color:inherit; text-decoration:none; }
+  img{ max-width:100%; display:block; }
+  button{ font-family:'Inter',sans-serif; cursor:pointer; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 18px; }
+
+  /* ===== Topbar ===== */
+  .topbar{ background:linear-gradient(135deg,var(--nav-dark) 0%,var(--nav-dark-2) 100%); color:#fff; padding:14px 0; box-shadow:0 4px 20px rgba(0,0,0,0.15); }
+  .topbar .wrap{ display:flex; align-items:center; justify-content:space-between; max-width:1400px; }
+  .logo{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:18px; color:#fff; }
+  .logo-mark{ width:28px; height:28px; border-radius:7px; background:var(--piment); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(230,46,4,0.4); }
+  .logo-mark svg{ width:15px; height:15px; }
+  .logo-accent{ color:var(--or); }
+  .back-link{ font-size:13px; color:#CFCFE0; transition:color .2s; }
+  .back-link:hover{ color:#fff; }
+
+  /* ===== Écran mot de passe — Glass Morphism ===== */
+  #gateScreen{ max-width:420px; margin:80px auto; padding:0 18px; text-align:center; }
+  .gate-icon{ width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg,var(--nav-dark),var(--nav-dark-2)); display:flex; align-items:center; justify-content:center; margin:0 auto 22px; box-shadow:0 8px 32px rgba(20,19,43,0.25); }
+  #gateScreen h1{ font-size:22px; margin:0 0 8px; font-weight:700; letter-spacing:-0.02em; }
+  #gateScreen p{ color:var(--muted); font-size:13.5px; margin:0 0 24px; }
+  .gate-card{ background:rgba(255,255,255,0.72); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.6); border-radius:16px; padding:28px 26px; box-shadow:0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5); text-align:left; }
+  .gate-card label{ display:block; font-size:13px; font-weight:600; margin-bottom:8px; color:var(--ink); }
+  .gate-card input{ width:100%; font-family:'Inter',sans-serif; font-size:14px; padding:13px 16px; border:1.5px solid var(--line); border-radius:10px; margin-bottom:14px; background:rgba(255,255,255,0.8); transition:border-color .2s, box-shadow .2s; }
+  .gate-card input:focus{ outline:none; border-color:var(--piment); box-shadow:0 0 0 4px rgba(230,46,4,0.10); background:#fff; }
+  .gate-card button{ width:100%; background:linear-gradient(135deg,var(--piment) 0%,var(--piment-lt) 100%); color:#fff; border:none; padding:14px; border-radius:100px; font-weight:700; font-size:14px; transition:transform .15s, box-shadow .15s; box-shadow:0 4px 16px rgba(230,46,4,0.3); }
+  .gate-card button:hover{ transform:translateY(-1px); box-shadow:0 6px 24px rgba(230,46,4,0.4); }
+  .gate-card button:active{ transform:translateY(0); }
+  .gate-error{ background:#FEE2E2; color:#B91C1C; border-radius:8px; padding:10px 14px; font-size:12.5px; margin-bottom:14px; display:none; border:1px solid rgba(185,28,28,0.12); }
+  .gate-note{ font-size:11.5px; color:var(--muted); margin-top:16px; line-height:1.6; }
+
+  /* ===== Tableau de bord ===== */
+  #dashScreen{ display:none; }
+  .dash-head{ background:linear-gradient(135deg,var(--nav-dark) 0%,var(--nav-dark-2) 100%); border-bottom:none; padding:24px 0; color:#fff; }
+  .dash-head .wrap{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+  .dash-head h1{ font-size:19px; margin:0 0 4px; font-weight:700; letter-spacing:-0.01em; }
+  .dash-head .sub{ font-size:12.5px; color:#A8A6C0; }
+  .dash-actions{ display:flex; gap:10px; }
+  .btn-outline{ border:1.5px solid rgba(255,255,255,0.25); color:#fff; padding:9px 16px; border-radius:100px; font-weight:600; font-size:13px; background:rgba(255,255,255,0.08); transition:background .2s, border-color .2s; }
+  .btn-outline:hover{ background:rgba(255,255,255,0.16); border-color:rgba(255,255,255,0.4); }
+
+  .dash-body{ max-width:var(--maxw); margin:0 auto; padding:28px 18px 70px; }
+  .dash-banner{ background:linear-gradient(135deg,#FFF4F0 0%,#FFF0ED 100%); border:1px solid #FFD9C7; color:#7A3A2A; border-radius:12px; padding:13px 18px; font-size:12.5px; margin-bottom:24px; box-shadow:0 2px 8px rgba(122,58,42,0.06); }
+
+  /* ===== Stats Cards ===== */
+  .dash-stats{ display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:28px; }
+  @media (max-width:700px){ .dash-stats{ grid-template-columns:repeat(2, 1fr); } }
+  .dash-stat-card{ background:linear-gradient(145deg,#FFFFFF 0%,#FAFAFE 100%); border-radius:14px; padding:20px 18px; box-shadow:0 2px 12px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.04); border:1px solid rgba(231,228,238,0.6); border-top:3px solid var(--line); transition:transform .2s, box-shadow .2s; position:relative; overflow:hidden; }
+  .dash-stat-card::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--line); border-radius:14px 14px 0 0; }
+  .dash-stat-card:hover{ transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.07); }
+  .dash-stat-card .lbl{ font-size:11.5px; color:var(--muted); margin-bottom:8px; font-weight:500; text-transform:uppercase; letter-spacing:0.04em; }
+  .dash-stat-card .val{ font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.02em; }
+  .dash-stat-card.highlight{ border-top-color:var(--piment); background:linear-gradient(145deg,#FFF5F2 0%,#FFFFFF 100%); }
+  .dash-stat-card.highlight::before{ background:linear-gradient(90deg,var(--piment),var(--piment-lt)); }
+  .dash-stat-card.highlight .val{ color:var(--piment); }
+
+  /* ===== Content Cards ===== */
+  .content-card{ background:linear-gradient(145deg,#FFFFFF 0%,#FEFEFE 100%); border-radius:14px; padding:26px 28px; box-shadow:0 2px 12px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.04); border:1px solid rgba(231,228,238,0.5); transition:box-shadow .2s; }
+  .content-card:hover{ box-shadow:0 4px 20px rgba(0,0,0,0.06); }
+  .content-card h2{ font-size:16px; margin:0 0 18px; font-weight:700; letter-spacing:-0.01em; }
+
+  /* ===== Sales Table ===== */
+  .dash-table{ width:100%; border-collapse:separate; border-spacing:0; }
+  .dash-table th{ text-align:left; font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; padding:0 12px 12px; border-bottom:2px solid var(--line); font-weight:600; }
+  .dash-table td{ padding:14px 12px; border-bottom:1px solid rgba(231,228,238,0.5); vertical-align:middle; font-size:13px; }
+  .dash-table tbody tr:nth-child(even){ background:rgba(243,243,243,0.35); }
+  .dash-table tbody tr{ transition:background .15s; }
+  .dash-table tbody tr:hover{ background:rgba(230,46,4,0.03); }
+  .dash-table tbody tr:last-child td{ border-bottom:none; }
+  .dash-prod{ display:flex; align-items:center; gap:12px; }
+  .dash-prod img{ width:44px; height:44px; border-radius:8px; object-fit:cover; background:#eee; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+  .dash-bar-wrap{ background:rgba(231,228,238,0.5); border-radius:6px; height:8px; width:100%; overflow:hidden; margin-top:6px; }
+  .dash-bar{ background:linear-gradient(90deg,var(--piment),var(--piment-lt)); height:100%; border-radius:6px; transition:width .4s ease; }
+
+  /* ===== Gestion des produits ===== */
+  .manage-list{ display:flex; flex-direction:column; gap:0; margin-bottom:20px; }
+  .manage-row{ display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid rgba(231,228,238,0.5); transition:background .15s; }
+  .manage-row:last-child{ border-bottom:none; }
+  .manage-row:hover{ background:rgba(243,243,243,0.3); }
+  .manage-row img{ width:46px; height:46px; border-radius:8px; object-fit:cover; background:#eee; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+  .manage-row .info{ flex:1; min-width:0; }
+  .manage-row .info .t{ font-size:13px; font-weight:600; }
+  .manage-row .info .p{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .manage-delete{ background:none; border:none; color:var(--muted); padding:8px; border-radius:8px; flex-shrink:0; transition:color .15s, background .15s; }
+  .manage-delete:hover{ color:var(--piment); background:#FEE2E2; }
+  .manage-empty{ color:var(--muted); font-size:13px; padding:10px 0; }
+
+  /* ===== Add Product Form ===== */
+  .add-prod-form{ border-top:1px solid rgba(231,228,238,0.6); padding-top:20px; }
+  .add-prod-form h3{ font-size:14px; margin:0 0 16px; font-weight:600; }
+  .add-prod-row{ display:grid; grid-template-columns:70px 1.4fr 1fr; gap:12px; align-items:start; margin-bottom:14px; }
+  @media (max-width:600px){ .add-prod-row{ grid-template-columns:1fr; } }
+  .add-thumb{
+    width:66px; height:66px; border-radius:10px; border:1.5px dashed var(--line); display:flex; align-items:center;
+    justify-content:center; cursor:pointer; overflow:hidden; background:var(--paper-2); flex-shrink:0; transition:border-color .2s, background .2s;
+  }
+  .add-thumb:hover{ border-color:var(--piment); background:#FFF5F2; }
+  .add-thumb input{ display:none; }
+  .add-thumb img{ width:100%; height:100%; object-fit:cover; }
+  .add-prod-row input[type="text"]{
+    width:100%; font-family:'Inter',sans-serif; font-size:13.5px; padding:11px 14px; border:1.5px solid var(--line); border-radius:8px;
+    transition:border-color .2s, box-shadow .2s; background:#fff;
+  }
+  .add-prod-row input[type="text"]:focus{ outline:none; border-color:var(--piment); box-shadow:0 0 0 4px rgba(230,46,4,0.08); }
+  .add-prod-btn{ background:linear-gradient(135deg,var(--piment) 0%,var(--piment-lt) 100%); color:#fff; border:none; padding:12px 24px; border-radius:100px; font-weight:700; font-size:13.5px; transition:transform .15s, box-shadow .15s; box-shadow:0 4px 16px rgba(230,46,4,0.25); }
+  .add-prod-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 24px rgba(230,46,4,0.35); }
+  .add-prod-btn:active{ transform:translateY(0); }
+  .add-prod-error{ background:#FEE2E2; color:#B91C1C; border-radius:8px; padding:10px 14px; font-size:12.5px; margin-bottom:12px; display:none; border:1px solid rgba(185,28,28,0.1); }
+  .add-prod-success{ background:#D1FAE5; color:#065F46; border-radius:8px; padding:10px 14px; font-size:12.5px; margin-bottom:12px; display:none; border:1px solid rgba(6,95,70,0.1); }
+
+  /* ===== Not Found ===== */
+  #notFound{ display:none; max-width:480px; margin:80px auto; text-align:center; padding:0 18px; }
+  #notFound h2{ font-size:22px; margin:14px 0 10px; font-weight:700; }
+  #notFound p{ color:var(--muted); margin:0 0 22px; }
+  .btn-primary{ background:linear-gradient(135deg,var(--piment) 0%,var(--piment-lt) 100%); color:#fff; padding:12px 26px; border-radius:100px; font-weight:700; font-size:14px; border:none; display:inline-block; box-shadow:0 4px 16px rgba(230,46,4,0.3); transition:transform .15s, box-shadow .15s; }
+  .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 6px 24px rgba(230,46,4,0.4); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a href="index.html" class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 8L5.5 4H18.5L20 8" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8H20V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V8Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </span>
+      Afri<span class="logo-accent">Market</span>
+    </a>
+    <a href="javascript:void(0)" onclick="goToShop()" class="back-link" id="backToShopLink">&larr; Retour à la boutique</a>
+  </div>
+</header>
+
+<!-- ===== Écran de mot de passe ===== -->
+<div id="gateScreen">
+  <div class="gate-icon">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="white" stroke-width="1.7"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="white" stroke-width="1.7"/></svg>
+  </div>
+  <h1>Accès vendeur protégé</h1>
+  <p>Cette zone contient vos statistiques de vente privées. Entrez votre mot de passe vendeur pour continuer.</p>
+  <div class="gate-card">
+    <div class="gate-error" id="gateError">Mot de passe incorrect. Réessayez.</div>
+    <label>Mot de passe vendeur</label>
+    <input type="password" id="passwordInput" placeholder="Votre mot de passe" onkeydown="if(event.key==='Enter') checkPassword()" />
+    <button onclick="checkPassword()">Accéder au tableau de bord</button>
+    <p class="gate-note">
+      ⚠️ Mot de passe de démonstration uniquement — stocké localement sans chiffrement.
+      Une vraie boutique nécessiterait une authentification sécurisée côté serveur.
+    </p>
+  </div>
+</div>
+
+<!-- ===== Tableau de bord ===== -->
+<div id="dashScreen">
+  <div class="dash-head">
+    <div class="wrap">
+      <div>
+        <h1 id="dashShopName">Tableau de bord</h1>
+        <div class="sub">Statistiques de vente — visible uniquement par vous</div>
+      </div>
+      <div class="dash-actions">
+        <a class="btn-outline" id="viewShopLinkBtn" href="#">Voir ma boutique publique</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <div class="dash-banner">
+      🔒 Vous êtes connecté en tant que vendeur de cette boutique. Ces chiffres ne sont visibles que par vous.
+    </div>
+
+    <div class="dash-stats">
+      <div class="dash-stat-card highlight">
+        <div class="lbl">Chiffre d'affaires total</div>
+        <div class="val" id="statRevenu">0 FCFA</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="lbl">Unités vendues</div>
+        <div class="val" id="statUnites">0</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="lbl">Produits au catalogue</div>
+        <div class="val" id="statProduits">0</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="lbl">Produit le plus vendu</div>
+        <div class="val" id="statMeilleur" style="font-size:14px;">—</div>
+      </div>
+    </div>
+
+    <div class="content-card" style="margin-bottom:18px;">
+      <h2>Gérer mes produits</h2>
+      <div class="manage-list" id="manageList"></div>
+
+      <div class="add-prod-form">
+        <h3>Ajouter un produit</h3>
+        <div class="add-prod-error" id="addProdError"></div>
+        <div class="add-prod-success" id="addProdSuccess">Produit ajouté avec succès !</div>
+        <div class="add-prod-row">
+          <label class="add-thumb" id="addThumb">
+            <input type="file" accept="image/*" onchange="previewNewProductImg(this)" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 16l4-4 4 4 6-6 2 2" stroke="#9CA3AF" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </label>
+          <input type="text" id="newProdTitle" placeholder="Nom du produit" />
+          <input type="text" id="newProdPrice" placeholder="Prix (FCFA)" />
+        </div>
+        <button class="add-prod-btn" onclick="submitNewProduct()">+ Ajouter ce produit</button>
+      </div>
+    </div>
+
+    <div class="content-card">
+      <h2>Ventes par produit</h2>
+      <table class="dash-table">
+        <thead>
+          <tr><th>Produit</th><th>Prix</th><th>Unités vendues</th><th>Revenu généré</th></tr>
+        </thead>
+        <tbody id="dashTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="notFound">
+  <svg width="46" height="46" viewBox="0 0 24 24" fill="none" style="margin:0 auto;color:#CBD5E1"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  <h2>Boutique introuvable</h2>
+  <p>Cette boutique n'existe pas ou a été créée sur un autre appareil.</p>
+  <a href="creer-boutique.html" class="btn-primary">Créer une boutique</a>
+</div>
+
+<script src="auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabaseClient.js"></script>
+<script src="boutique.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('nom');
+  let shop = null;
+  let sessionPassword = null; // gardé en mémoire seulement le temps de la session, jamais stocké
+  let newProdImg = '';
+
+  function fcfa(n) { return (n || 0).toLocaleString('fr-FR') + ' FCFA'; }
+  function goToShop() { window.location.href = 'boutique.html?nom=' + encodeURIComponent(slug); }
+
+  async function init() {
+    shop = slug ? await getBoutique(slug) : null;
+    if (!shop) {
+      document.getElementById('gateScreen').style.display = 'none';
+      document.getElementById('notFound').style.display = 'block';
+    } else {
+      document.getElementById('passwordInput').focus();
+    }
+  }
+
+  async function checkPassword() {
+    const value = document.getElementById('passwordInput').value;
+    const btn = document.querySelector('.gate-card button');
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Vérification...';
+    document.getElementById('gateError').style.display = 'none';
+
+    const ok = await checkBoutiquePassword(slug, value);
+
+    btn.disabled = false;
+    btn.textContent = original;
+
+    if (ok) {
+      sessionPassword = value; // conservé pour les actions suivantes (ajout/suppression produit)
+      document.getElementById('gateScreen').style.display = 'none';
+      document.getElementById('dashScreen').style.display = 'block';
+      document.getElementById('dashShopName').textContent = shop.nom + ' — Tableau de bord';
+      document.getElementById('viewShopLinkBtn').href = 'boutique.html?nom=' + slug;
+      renderDashboard();
+    } else {
+      document.getElementById('gateError').style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+    }
+  }
+
+  function renderManageList() {
+    const produits = shop.produits || [];
+    const listEl = document.getElementById('manageList');
+    listEl.innerHTML = produits.length
+      ? produits.map((p) => `
+        <div class="manage-row">
+          <img src="${p.img}" alt="${p.title}" />
+          <div class="info">
+            <div class="t">${p.title}</div>
+            <div class="p">${fcfa(p.price)}</div>
+          </div>
+          <button class="manage-delete" onclick="removeProduct('${p.id}', '${p.title.replace(/'/g, "\\'")}')" aria-label="Supprimer">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 6H21M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>`).join('')
+      : '<p class="manage-empty">Aucun produit pour le moment — ajoutez-en un ci-dessous.</p>';
+  }
+
+  function previewNewProductImg(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      newProdImg = e.target.result;
+      const thumb = document.getElementById('addThumb');
+      thumb.innerHTML = `<img src="${e.target.result}" /><input type="file" accept="image/*" onchange="previewNewProductImg(this)" style="display:none" />`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function submitNewProduct() {
+    const errorBox = document.getElementById('addProdError');
+    const successBox = document.getElementById('addProdSuccess');
+    errorBox.style.display = 'none';
+    successBox.style.display = 'none';
+
+    const title = document.getElementById('newProdTitle').value.trim();
+    const price = parseInt(document.getElementById('newProdPrice').value, 10);
+
+    if (!title || !price) {
+      errorBox.textContent = 'Renseignez un nom et un prix valides.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    const btn = document.querySelector('.add-prod-btn');
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Ajout en cours...';
+
+    try {
+      await addProductSecure(slug, sessionPassword, {
+        title,
+        price,
+        img: newProdImg || 'https://picsum.photos/seed/' + encodeURIComponent(title) + '/400/400',
+      });
+
+      // Réinitialise le formulaire
+      document.getElementById('newProdTitle').value = '';
+      document.getElementById('newProdPrice').value = '';
+      newProdImg = '';
+      document.getElementById('addThumb').innerHTML = `
+        <input type="file" accept="image/*" onchange="previewNewProductImg(this)" />
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 16l4-4 4 4 6-6 2 2" stroke="#9CA3AF" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+
+      successBox.style.display = 'block';
+      shop = await getBoutique(slug);
+      renderManageList();
+      renderDashboard();
+    } catch (err) {
+      errorBox.textContent = err.message || "L'ajout a échoué.";
+      errorBox.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  }
+
+  async function removeProduct(productId, title) {
+    if (!confirm(`Supprimer "${title}" de votre boutique ?`)) return;
+    try {
+      await deleteProductSecure(slug, sessionPassword, productId);
+      shop = await getBoutique(slug);
+      renderManageList();
+      renderDashboard();
+    } catch (err) {
+      alert(err.message || 'La suppression a échoué.');
+    }
+  }
+
+  async function renderDashboard() {
+    const stats = await getShopStats(slug);
+    if (!stats) return;
+    document.getElementById('statRevenu').textContent = fcfa(stats.totalRevenu);
+    document.getElementById('statUnites').textContent = stats.totalUnites;
+    document.getElementById('statProduits').textContent = stats.produits.length;
+    document.getElementById('statMeilleur').textContent = stats.meilleurVendeur && stats.meilleurVendeur.vendus
+      ? stats.meilleurVendeur.title : 'Aucune vente pour le moment';
+
+    const maxVendus = Math.max(1, ...stats.produits.map((p) => p.vendus || 0));
+    document.getElementById('dashTableBody').innerHTML = stats.produits.length
+      ? stats.produits.map((p) => `
+        <tr>
+          <td><div class="dash-prod"><img src="${p.img}" /><span>${p.title}</span></div></td>
+          <td>${fcfa(p.price)}</td>
+          <td style="min-width:130px;">
+            ${p.vendus || 0}
+            <div class="dash-bar-wrap"><div class="dash-bar" style="width:${((p.vendus || 0) / maxVendus) * 100}%"></div></div>
+          </td>
+          <td><strong>${fcfa(p.revenu || 0)}</strong></td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;">Aucun produit dans cette boutique.</td></tr>';
+
+    renderManageList();
+  }
+
+  init();
+</script>
+</body>
+</html>

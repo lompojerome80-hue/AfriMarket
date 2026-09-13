@@ -1,0 +1,366 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vendre sur AfriMarket — Créez votre boutique</title>
+<meta name="description" content="Vendez vos produits sur AfriMarket — créez votre boutique, gérez vos articles et recevez vos paiements au Burkina Faso." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23E62E04' width='100' height='100' rx='20'/%3E%3Ctext x='50' y='68' font-size='55' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
+<meta name="theme-color" content="#0F0E23" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  :root{
+    --nav-dark:#14132B;--nav-dark-2:#1E1D3E;--piment:#E62E04;--piment-lt:#FF6B3D;
+    --or:#F2A93B;--kola:#1E7A46;--ink:#1A1A1A;--muted:#62606F;--line:#E7E4EE;
+    --paper:#FFFFFF;--paper-2:#F8F8FA;--radius:10px;--maxw:1400px;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-md:0 4px 16px rgba(0,0,0,.08);
+    --shadow-lg:0 8px 32px rgba(0,0,0,.12);--shadow-xl:0 16px 48px rgba(0,0,0,.16);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper-2);color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none;}
+  img{max-width:100%;display:block;}
+  button{font-family:'Inter',sans-serif;cursor:pointer;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 18px;}
+
+  /* ===== Topbar ===== */
+  .topbar{background:var(--nav-dark);color:#fff;position:sticky;top:0;z-index:100;}
+  .topbar-inner{max-width:var(--maxw);margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px;}
+  .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;color:#fff;flex-shrink:0;padding:6px;border:1px solid transparent;border-radius:4px;}
+  .logo:hover{border-color:rgba(255,255,255,.5);}
+  .logo-mark{width:28px;height:28px;border-radius:7px;background:var(--piment);display:flex;align-items:center;justify-content:center;}
+  .logo-mark svg{width:15px;height:15px;}
+  .logo-accent{color:var(--or);}
+  .deliver{background:none;border:1px solid transparent;color:#fff;display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:4px;flex-shrink:0;}
+  .deliver:hover{border-color:rgba(255,255,255,.5);}
+  .deliver-text{display:flex;flex-direction:column;text-align:left;font-size:13.5px;font-weight:700;}
+  .deliver-text small{font-weight:400;color:#CFCFE0;font-size:11.5px;}
+  .search{flex:1;display:flex;height:40px;border-radius:4px;overflow:hidden;min-width:180px;}
+  .search select{background:#E9E9E9;border:none;padding:0 10px;font-size:12.5px;color:#333;border-right:1px solid #cfcfcf;max-width:120px;}
+  .search input{flex:1;border:none;padding:0 12px;font-size:14px;min-width:0;}
+  .search button{background:var(--or);border:none;width:46px;display:flex;align-items:center;justify-content:center;}
+  .search button:hover{background:#e09a2b;}
+  .img-search-btn{background:#fff !important;border-left:1px solid #ddd;width:42px;}
+  .img-search-btn:hover{background:#f0f0f0 !important;}
+  .acct{background:none;border:1px solid transparent;color:#fff;display:flex;flex-direction:column;text-align:left;padding:6px 8px;border-radius:4px;font-size:13px;font-weight:700;flex-shrink:0;white-space:nowrap;}
+  .acct small{font-weight:400;color:#CFCFE0;font-size:11.5px;}
+  .acct:hover{border-color:rgba(255,255,255,.5);}
+  .cart{background:none;border:1px solid transparent;color:#fff;display:flex;align-items:flex-end;gap:4px;padding:6px 10px;border-radius:4px;position:relative;flex-shrink:0;}
+  .cart:hover{border-color:rgba(255,255,255,.5);}
+  .cart-count{position:absolute;top:0;left:16px;background:var(--piment);color:#fff;font-weight:700;font-size:12px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  .cart-label{font-weight:700;font-size:14px;}
+  .subnav{background:var(--nav-dark-2);display:flex;align-items:center;gap:18px;padding:8px 22px;overflow-x:auto;white-space:nowrap;}
+  .subnav a,.all-cat{color:#fff;font-size:13px;font-weight:500;background:none;border:none;padding:4px 6px;border-radius:4px;display:flex;align-items:center;gap:6px;position:relative;}
+  .subnav a:hover,.all-cat:hover{background:rgba(255,255,255,.12);}
+  .all-cat{font-weight:700;}
+  .subnav a.active{background:rgba(255,255,255,.14);font-weight:700;}
+  @media(max-width:900px){.topbar-inner{flex-wrap:wrap;}.search{order:3;width:100%;}.deliver,.acct{display:none;}}
+
+  /* ===== Breadcrumb ===== */
+  .breadcrumb{padding:16px 18px 0;font-size:12.5px;color:var(--muted);}
+  .breadcrumb a{color:#0066C0;}
+  .breadcrumb a:hover{text-decoration:underline;color:var(--piment);}
+  .breadcrumb span{margin:0 4px;}
+
+  /* ===== Hero ===== */
+  .v-hero{
+    position:relative;overflow:hidden;
+    background:linear-gradient(135deg,rgba(20,19,43,.92) 0%,rgba(20,19,43,.75) 40%,rgba(230,46,4,.6) 100%),url('https://picsum.photos/seed/vendorhero2/1600/600');
+    background-size:cover;background-position:center;color:#fff;padding:100px 24px 90px;text-align:center;
+  }
+  .v-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(242,169,59,.15) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(230,46,4,.1) 0%,transparent 50%);pointer-events:none;}
+  .v-hero .eyebrow{position:relative;font-size:13px;font-weight:700;letter-spacing:.14em;color:var(--or);margin:0 0 16px;text-transform:uppercase;}
+  .v-hero h1{position:relative;font-size:clamp(30px,5vw,52px);font-weight:800;margin:0 0 20px;max-width:760px;margin-left:auto;margin-right:auto;line-height:1.15;}
+  .v-hero p{position:relative;color:rgba(231,229,240,.9);font-size:clamp(14px,2vw,17px);max-width:580px;margin:0 auto 36px;line-height:1.6;}
+  .v-hero .cta-row{position:relative;display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+  .hero-btn{display:inline-block;background:var(--piment);color:#fff;font-weight:700;padding:14px 30px;border-radius:100px;font-size:15px;border:none;transition:all .25s ease;}
+  .hero-btn:hover{background:var(--piment-lt);transform:translateY(-2px);box-shadow:0 8px 24px rgba(230,46,4,.35);}
+  .hero-btn-ghost{display:inline-block;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.35);color:#fff;font-weight:700;padding:14px 30px;border-radius:100px;font-size:15px;transition:all .25s ease;}
+  .hero-btn-ghost:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.55);}
+
+  /* ===== Stats ===== */
+  .v-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin:-48px auto 40px;position:relative;z-index:2;}
+  @media(max-width:800px){.v-stats{grid-template-columns:repeat(2,1fr);margin-top:-32px;}}
+  .v-stat{background:#fff;border-radius:var(--radius);padding:28px 20px;text-align:center;box-shadow:var(--shadow-lg);border-top:3px solid var(--piment);transition:transform .25s ease,box-shadow .25s ease;}
+  .v-stat:hover{transform:translateY(-4px);box-shadow:var(--shadow-xl);}
+  .v-stat .num{font-size:28px;font-weight:800;color:var(--piment);line-height:1.2;}
+  .v-stat p{margin:8px 0 0;font-size:12.5px;color:var(--muted);line-height:1.4;}
+
+  /* ===== Section headers ===== */
+  .v-section{padding:56px 0;}
+  .v-head{max-width:620px;margin:0 auto 38px;text-align:center;}
+  .v-head .eyebrow{color:var(--piment);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+  .v-head h2{font-size:clamp(22px,3.5vw,30px);font-weight:800;margin:10px 0 14px;}
+  .v-head p{color:var(--muted);font-size:15px;}
+
+  /* ===== Benefits ===== */
+  .v-benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  @media(max-width:900px){.v-benefits{grid-template-columns:1fr;}}
+  .v-benefit{background:#fff;border-radius:var(--radius);padding:32px 28px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease;}
+  .v-benefit:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);}
+  .v-benefit::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--piment),var(--or));transform:scaleX(0);transform-origin:left;transition:transform .3s ease;}
+  .v-benefit:hover::after{transform:scaleX(1);}
+  .v-benefit .chip{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--piment),var(--piment-lt));display:flex;align-items:center;justify-content:center;margin-bottom:18px;box-shadow:0 4px 12px rgba(230,46,4,.2);}
+  .v-benefit h3{font-size:17px;font-weight:700;margin:0 0 10px;}
+  .v-benefit p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.6;}
+
+  /* ===== Steps ===== */
+  .v-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;counter-reset:step;position:relative;}
+  @media(max-width:900px){.v-steps{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:560px){.v-steps{grid-template-columns:1fr;}}
+  .v-steps::before{content:'';position:absolute;top:28px;left:calc(12.5% + 12px);right:calc(12.5% + 12px);height:3px;background:linear-gradient(90deg,var(--piment),var(--or));border-radius:2px;z-index:0;}
+  @media(max-width:900px){.v-steps::before{left:calc(25% + 12px);right:calc(25% + 12px);}}
+  @media(max-width:560px){.v-steps::before{display:none;}}
+  .v-step{text-align:center;position:relative;z-index:1;}
+  .v-step .idx{
+    width:52px;height:52px;border-radius:50%;background:var(--nav-dark);color:var(--or);font-weight:800;
+    display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:18px;
+    box-shadow:0 4px 16px rgba(20,19,43,.3);border:3px solid rgba(242,169,59,.3);transition:all .25s ease;
+  }
+  .v-step:hover .idx{background:var(--piment);color:#fff;border-color:rgba(230,46,4,.4);transform:scale(1.1);box-shadow:0 6px 24px rgba(230,46,4,.3);}
+  .v-step h4{font-size:15px;font-weight:700;margin:0 0 8px;}
+  .v-step p{font-size:13px;color:var(--muted);margin:0;}
+
+  /* ===== Pricing ===== */
+  .v-pricing{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+  @media(max-width:800px){.v-pricing{grid-template-columns:1fr;}}
+  .v-price-card{border-radius:var(--radius);padding:36px 32px;position:relative;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease;}
+  .v-price-card:hover{transform:translateY(-4px);}
+  .v-price-card.free{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-md);}
+  .v-price-card.premium{background:linear-gradient(135deg,var(--nav-dark) 0%,#262450 100%);color:#fff;box-shadow:var(--shadow-xl);}
+  .v-price-card.premium::before{content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;background:radial-gradient(circle,rgba(242,169,59,.15),transparent 70%);pointer-events:none;}
+  .v-price-card .tag{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--piment);margin:0 0 4px;}
+  .v-price-card.premium .tag{color:var(--or);}
+  .v-price-card .amount{font-size:40px;font-weight:800;margin:10px 0 20px;line-height:1.2;}
+  .v-price-card .amount small{font-size:14px;font-weight:500;color:var(--muted);}
+  .v-price-card.premium .amount small{color:#B9B6D6;}
+  .v-price-card ul{list-style:none;padding:0;margin:0 0 24px;}
+  .v-price-card li{padding:8px 0;font-size:14px;display:flex;align-items:center;gap:10px;}
+  .v-price-card li::before{content:'✓';color:var(--kola);font-weight:700;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(30,122,70,.08);font-size:12px;flex-shrink:0;}
+  .v-price-card.premium li::before{color:var(--or);background:rgba(242,169,59,.12);}
+  .v-price-card .hero-btn{width:100%;text-align:center;border:none;display:block;}
+
+  .v-ads-note{margin-top:24px;background:#fff;border-radius:var(--radius);padding:20px 24px;font-size:13.5px;color:var(--muted);box-shadow:var(--shadow-sm);border-left:4px solid var(--or);line-height:1.6;}
+  .v-ads-note strong{color:var(--ink);}
+
+  /* ===== Final CTA ===== */
+  .v-cta-wrap{position:relative;overflow:hidden;border-radius:var(--radius);}
+  .v-cta-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(242,169,59,.12),transparent 60%),radial-gradient(ellipse at 80% 50%,rgba(230,46,4,.1),transparent 60%);pointer-events:none;}
+  .v-cta{background:linear-gradient(135deg,var(--nav-dark) 0%,#1E1D3E 50%,var(--nav-dark) 100%);color:#fff;text-align:center;padding:64px 24px;border-radius:var(--radius);position:relative;}
+  .v-cta h2{font-size:clamp(22px,3.5vw,30px);font-weight:800;margin:0 0 14px;}
+  .v-cta p{color:rgba(207,207,224,.9);margin:0 0 30px;font-size:15px;}
+
+  /* ===== Footer ===== */
+  .site-footer{background:var(--nav-dark);color:#CFCFE0;padding:40px 0 0;}
+  .footer-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;padding-bottom:30px;}
+  @media(max-width:750px){.footer-cols{grid-template-columns:1fr 1fr;}}
+  .footer-cols h5{color:#fff;font-size:13px;margin:0 0 12px;}
+  .footer-cols ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;font-size:12.5px;}
+  .footer-cols a:hover{text-decoration:underline;color:#fff;}
+  .footer-bottom{border-top:1px solid rgba(255,255,255,.12);padding:22px 18px;display:flex;align-items:center;justify-content:center;gap:30px;flex-wrap:wrap;}
+  .footer-meta{display:flex;gap:18px;font-size:12.5px;color:#9C99B6;}
+  .footer-copy{text-align:center;font-size:11.5px;color:#8A88A0;padding:16px;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 8L5.5 4H18.5L20 8" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8H20V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V8Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </span>
+      Afri<span class="logo-accent">Market</span>
+    </a>
+    <button class="deliver">
+      <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 21C12 21 4 15.5 4 9.5C4 6.46 6.46 4 9.5 4C10.94 4 12 4.9 12 4.9C12 4.9 13.06 4 14.5 4C17.54 4 20 6.46 20 9.5C20 15.5 12 21 12 21Z" stroke="#CCC" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      <span class="deliver-text"><small>Livrer à Ouagadougou</small>Choisir une adresse</span>
+    </button>
+    <form class="search" onsubmit="event.preventDefault(); performTextSearch(this.querySelector('input[type=text]').value);">
+      <select aria-label="Choisir une catégorie">
+        <option>Toutes catégories</option><option>Électronique</option><option>Mode Femme</option>
+        <option>Mode Homme</option><option>Maison &amp; Cuisine</option><option>Beauté &amp; Santé</option>
+      </select>
+      <input type="text" placeholder="Rechercher sur AfriMarket" aria-label="Rechercher" />
+      <button type="button" class="img-search-btn" onclick="triggerImageSearch()" aria-label="Rechercher par image" title="Rechercher par image">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M4 7h2l1.5-2h9L18 7h2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" stroke="#1A1A1A" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.3" stroke="#1A1A1A" stroke-width="1.8"/></svg>
+      </button>
+      <input type="file" id="imgSearchInput" accept="image/*" style="display:none" onchange="handleImageSearchFile(this)" />
+      <button type="submit" aria-label="Rechercher">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><circle cx="11" cy="11" r="7" stroke="#1A1A1A" stroke-width="2.2"/><path d="M21 21L16.6 16.6" stroke="#1A1A1A" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
+    </form>
+    <button class="acct"><small>Bonjour, identifiez-vous</small>Comptes et listes</button>
+    <button class="acct"><small>Retours</small>&amp; commandes</button>
+    <a href="panier.html" class="cart">
+      <svg viewBox="0 0 24 24" fill="none" width="30" height="30"><path d="M6 6H23L21 15H8L6 6ZM6 6L5 3H2" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="19" r="1.5" fill="white"/><circle cx="19" cy="19" r="1.5" fill="white"/></svg>
+      <span class="cart-count">0</span><span class="cart-label">Panier</span>
+    </a>
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </button>
+  </div>
+  <nav class="subnav">
+    <button class="all-cat">
+      <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M3 6H21M3 12H21M3 18H21" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      Toutes les catégories
+    </button>
+    <a href="index.html#offres">Offres du jour</a>
+    <a href="vendeurs.html" class="active">Vendre sur AfriMarket</a>
+    <a href="vendeurs.html#tarifs">Devenir Premium</a>
+    <a href="index.html#nouveautes">Nouveautés</a>
+    <a href="index.html#mode">Mode</a>
+    <a href="index.html#maison">Maison &amp; Cuisine</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</header>
+
+<div class="wrap breadcrumb">
+  <a href="index.html">Accueil</a> <span>/</span> <span>Vendre sur AfriMarket</span>
+</div>
+
+<!-- ============ HERO ============ -->
+<section class="v-hero">
+  <p class="eyebrow">Espace Vendeur</p>
+  <h1>Créez votre boutique et vendez partout en Afrique</h1>
+  <p>Publiez vos produits en quelques minutes, gérez vos commandes et boostez vos ventes — gratuitement pour commencer.</p>
+  <div class="cta-row">
+    <a href="creer-boutique.html" class="hero-btn">Créer ma boutique gratuitement</a>
+    <a href="#tarifs" class="hero-btn-ghost">Voir les tarifs</a>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <!-- ============ CHIFFRES CLÉS ============ -->
+  <div class="v-stats">
+    <div class="v-stat"><div class="num">0 FCFA</div><p>Pour créer votre boutique</p></div>
+    <div class="v-stat"><div class="num">3</div><p>Produits gratuits pour démarrer</p></div>
+    <div class="v-stat"><div class="num">5 000 FCFA</div><p>Abonnement Premium illimité / mois</p></div>
+    <div class="v-stat"><div class="num">7 000 FCFA</div><p>Première campagne publicitaire dès</p></div>
+  </div>
+
+  <!-- ============ AVANTAGES ============ -->
+  <section class="v-section">
+    <div class="v-head">
+      <p class="eyebrow">Pourquoi vendre sur AfriMarket</p>
+      <h2>Tout ce qu'il faut pour développer votre activité</h2>
+    </div>
+    <div class="v-benefits">
+      <div class="v-benefit">
+        <div class="chip"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M4 8L5.5 4H18.5L20 8" stroke="white" stroke-width="1.6"/><path d="M4 8H20V18C20 19.1 19.1 20 18 20H6C4.9 20 4 19.1 4 18V8Z" stroke="white" stroke-width="1.6"/></svg></div>
+        <h3>Boutique en quelques minutes</h3>
+        <p>Publiez vos produits avec photos directement depuis votre téléphone, sans compétence technique.</p>
+      </div>
+      <div class="v-benefit">
+        <div class="chip"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 21C12 21 4 15.5 4 9.5C4 6.46 6.46 4 9.5 4C10.94 4 12 4.9 12 4.9C12 4.9 13.06 4 14.5 4C17.54 4 20 6.46 20 9.5C20 15.5 12 21 12 21Z" stroke="white" stroke-width="1.6"/></svg></div>
+        <h3>Une clientèle dans tout le pays</h3>
+        <p>Votre boutique est visible par tous les clients AfriMarket, pas seulement votre quartier.</p>
+      </div>
+      <div class="v-benefit">
+        <div class="chip"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M3 11L21 4L14 22L11 13L3 11Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+        <h3>Publicité accessible</h3>
+        <p>Boostez vos produits sur AfriMarket, Facebook, Instagram et TikTok depuis un seul écran.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMMENT ÇA MARCHE ============ -->
+  <section class="v-section" id="inscription">
+    <div class="v-head">
+      <p class="eyebrow">Comment ça marche</p>
+      <h2>Quatre étapes pour commencer à vendre</h2>
+    </div>
+    <div class="v-steps">
+      <div class="v-step"><div class="idx">1</div><h4>Créez votre compte</h4><p>Inscription gratuite en quelques minutes.</p></div>
+      <div class="v-step"><div class="idx">2</div><h4>Publiez vos produits</h4><p>Titre, prix, stock et photos.</p></div>
+      <div class="v-step"><div class="idx">3</div><h4>Recevez vos commandes</h4><p>Les clients achètent directement sur AfriMarket.</p></div>
+      <div class="v-step"><div class="idx">4</div><h4>Boostez vos ventes</h4><p>Passez Premium ou lancez une campagne publicitaire.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ TARIFS ============ -->
+  <section class="v-section" id="tarifs">
+    <div class="v-head">
+      <p class="eyebrow">Tarifs</p>
+      <h2>Un abonnement simple, en FCFA</h2>
+      <p>Commencez gratuitement. Passez Premium quand votre boutique est prête à grandir.</p>
+    </div>
+    <div class="v-pricing">
+      <div class="v-price-card free">
+        <p class="tag">Gratuit</p>
+        <p class="amount">0 F <small>/ toujours</small></p>
+        <ul>
+          <li>Jusqu'à 3 produits publiés</li>
+          <li>Boutique visible dans le catalogue</li>
+          <li>Gestion des commandes incluse</li>
+        </ul>
+        <a href="creer-boutique.html" class="hero-btn" style="background:var(--nav-dark);">Commencer gratuitement</a>
+      </div>
+      <div class="v-price-card premium">
+        <p class="tag">Premium</p>
+        <p class="amount">5 000 F <small>/ mois</small></p>
+        <ul>
+          <li>Produits illimités</li>
+          <li>Badge Vendeur Vérifié</li>
+          <li>Mise en avant dans les résultats</li>
+        </ul>
+        <a href="#" class="hero-btn">Passer Premium</a>
+      </div>
+    </div>
+    <div class="v-ads-note">
+      <strong>Campagnes publicitaires en option</strong> — à partir de 7 000 FCFA, boostez un produit sur AfriMarket, Facebook, Instagram et TikTok pendant 7 à 30 jours. Arrêt automatique en fin de forfait.
+    </div>
+  </section>
+
+  <!-- ============ CTA FINALE ============ -->
+  <section class="v-section">
+    <div class="v-cta-wrap">
+      <div class="v-cta">
+        <h2>Prêt à lancer votre boutique ?</h2>
+        <p>Rejoignez les premiers vendeurs à construire leur activité sur AfriMarket.</p>
+        <a href="creer-boutique.html" class="hero-btn">Créer ma boutique maintenant</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<button id="backToTop" aria-label="Retour en haut de page">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<footer class="site-footer">
+  <div class="footer-cols wrap">
+    <div>
+      <h5>À propos d'AfriMarket</h5>
+      <ul><li><a href="quisommesnous.html">Qui sommes-nous</a></li><li><a href="vendeurs.html">Comment ça marche</a></li><li><a href="quisommesnous.html#engagements">Nos engagements</a></li></ul>
+    </div>
+    <div>
+      <h5>Gagnez de l'argent avec nous</h5>
+      <ul><li><a href="vendeurs.html">Vendre sur AfriMarket</a></li><li><a href="vendeurs.html#tarifs">Devenir vendeur Premium</a></li><li><a href="vendeurs.html#tarifs">Lancer une campagne publicitaire</a></li></ul>
+    </div>
+    <div>
+      <h5>Moyens de paiement</h5>
+      <ul><li>Orange Money</li><li>Moov Money</li><li>Paiement à la livraison</li></ul>
+    </div>
+    <div>
+      <h5>Besoin d'aide</h5>
+      <ul><li><a href="contact.html">Assistance client</a></li><li><a href="panier.html">Suivre ma commande</a></li><li><a href="contact.html">Nous contacter</a></li></ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <a href="index.html" class="logo">Afri<span class="logo-accent">Market</span></a>
+    <div class="footer-meta"><span>Français — Burkina Faso</span><span>FCFA</span></div>
+  </div>
+  <div class="footer-copy">© 2026 AfriMarket. Tous droits réservés. Site de démonstration.</div>
+</footer>
+
+<script src="auth.js"></script>
+<script src="cart.js"></script>
+<script src="search.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

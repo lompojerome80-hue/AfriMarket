@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mon compte — AfriMarket</title>
+<meta name="description" content="Gérez votre compte AfriMarket — commandes, adresses, paiements et préférences au Burkina Faso." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23E62E04' width='100' height='100' rx='20'/%3E%3Ctext x='50' y='68' font-size='55' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
+<meta name="theme-color" content="#0F0E23" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  .account-page{max-width:960px;margin:0 auto;padding:40px 20px 60px}
+  .account-logged-out{text-align:center;padding:80px 20px}
+  .account-logged-out h2{font-size:1.6rem;margin-bottom:12px;color:#1a1a1a}
+  .account-logged-out p{color:#555;margin-bottom:24px}
+  .account-logged-out a{display:inline-block;background:#e62e04;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;transition:background .2s}
+  .account-logged-out a:hover{background:#c42503}
+
+  .profile-card{border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:32px}
+  .profile-header{background:linear-gradient(135deg,#e62e04 0%,#1a1a1a 100%);padding:36px 32px 28px;color:#fff;position:relative}
+  .profile-avatar{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:#fff;letter-spacing:1px;margin-bottom:16px}
+  .profile-header h2{font-size:1.5rem;margin-bottom:4px}
+  .profile-header .role-badge{display:inline-block;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:600;margin-top:8px;text-transform:uppercase;letter-spacing:.5px}
+  .profile-body{padding:28px 32px}
+  .profile-body .info-row{display:flex;padding:12px 0;border-bottom:1px solid #f0f0f0}
+  .profile-body .info-row:last-child{border-bottom:none}
+  .profile-body .info-label{width:160px;font-weight:600;color:#555;font-size:.9rem;flex-shrink:0}
+  .profile-body .info-value{color:#1a1a1a;font-size:.95rem}
+
+  .section-title{font-size:1.2rem;font-weight:700;margin-bottom:20px;color:#1a1a1a}
+
+  .actions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:40px}
+  .action-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:24px 20px;text-align:center;text-decoration:none;color:#1a1a1a;transition:box-shadow .2s,border-color .2s;cursor:pointer}
+  .action-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);border-color:#e62e04}
+  .action-card .action-icon{font-size:2rem;margin-bottom:12px;display:block}
+  .action-card .action-label{font-weight:600;font-size:1rem;margin-bottom:4px;display:block}
+  .action-card .action-sub{font-size:.82rem;color:#888;display:block}
+
+  .settings-section{background:#fff;border-radius:16px;padding:32px;box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:40px}
+  .settings-buttons{display:flex;gap:12px;flex-wrap:wrap}
+  .btn-edit{background:#e62e04;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;transition:background .2s}
+  .btn-edit:hover{background:#c42503}
+  .btn-logout{background:#fff;color:#e62e04;border:2px solid #e62e04;padding:12px 28px;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;transition:background .2s,color .2s}
+  .btn-logout:hover{background:#e62e04;color:#fff}
+
+  .edit-form{margin-top:24px;display:none}
+  .edit-form.show{display:block}
+  .edit-form label{display:block;font-weight:600;font-size:.85rem;color:#555;margin-bottom:6px;margin-top:16px}
+  .edit-form label:first-child{margin-top:0}
+  .edit-form input{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:8px;font-size:.95rem;font-family:inherit;transition:border-color .2s}
+  .edit-form input:focus{outline:none;border-color:#e62e04}
+  .edit-form .form-actions{display:flex;gap:12px;margin-top:24px}
+  .edit-form .btn-save{background:#e62e04;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;transition:background .2s}
+  .edit-form .btn-save:hover{background:#c42503}
+  .edit-form .btn-cancel{background:#f5f5f5;color:#555;border:none;padding:12px 28px;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;transition:background .2s}
+  .edit-form .btn-cancel:hover{background:#eee}
+
+  @media(max-width:600px){
+    .profile-header{padding:24px 20px 20px}
+    .profile-body{padding:20px}
+    .actions-grid{grid-template-columns:1fr 1fr}
+    .settings-section{padding:24px 20px}
+    .settings-buttons{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ BARRE 1 : logo, livraison, recherche, compte, panier ============ -->
+<header class="topbar" role="banner">
+  <div class="topbar-inner">
+    <a href="#" class="logo" aria-label="AfriMarket — Accueil">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 8L5.5 4H18.5L20 8" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8H20V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V8Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </span>
+      Afri<span class="logo-accent">Market</span>
+    </a>
+
+    <button class="deliver" aria-label="Choisir l'adresse de livraison">
+      <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 21C12 21 4 15.5 4 9.5C4 6.46 6.46 4 9.5 4C10.94 4 12 4.9 12 4.9C12 4.9 13.06 4 14.5 4C17.54 4 20 6.46 20 9.5C20 15.5 12 21 12 21Z" stroke="#CCC" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      <span class="deliver-text">
+        <small>Livrer à Ouagadougou</small>
+        Choisir une adresse
+      </span>
+    </button>
+
+    <form class="search" onsubmit="event.preventDefault(); performTextSearch(this.querySelector('input[type=text]').value);">
+      <label for="searchCat" class="sr-only">Choisir une catégorie</label>
+      <select id="searchCat" aria-label="Choisir une catégorie">
+        <option>Toutes catégories</option>
+        <option>Électronique</option>
+        <option>Mode Femme</option>
+        <option>Mode Homme</option>
+        <option>Maison &amp; Cuisine</option>
+        <option>Beauté &amp; Santé</option>
+      </select>
+      <input type="text" placeholder="Rechercher sur AfriMarket" aria-label="Rechercher" />
+      <button type="button" class="img-search-btn" onclick="triggerImageSearch()" aria-label="Rechercher par image" title="Rechercher par image">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M4 7h2l1.5-2h9L18 7h2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" stroke="#1A1A1A" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.3" stroke="#1A1A1A" stroke-width="1.8"/></svg>
+      </button>
+      <input type="file" id="imgSearchInput" accept="image/*" style="display:none" onchange="handleImageSearchFile(this)" />
+      <button type="submit" aria-label="Rechercher">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><circle cx="11" cy="11" r="7" stroke="#1A1A1A" stroke-width="2.2"/><path d="M21 21L16.6 16.6" stroke="#1A1A1A" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
+    </form>
+
+    <button class="acct">
+      <small>Bonjour, identifiez-vous</small>
+      Comptes et listes
+    </button>
+    <button class="acct">
+      <small>Retours</small>
+      &amp; commandes
+    </button>
+    <a href="panier.html" class="cart" aria-label="Panier">
+      <svg viewBox="0 0 24 24" fill="none" width="30" height="30"><path d="M6 6H23L21 15H8L6 6ZM6 6L5 3H2" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="19" r="1.5" fill="white"/><circle cx="19" cy="19" r="1.5" fill="white"/></svg>
+      <span class="cart-count">0</span>
+      <span class="cart-label">Panier</span>
+    </a>
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </button>
+  </div>
+
+  <!-- ============ BARRE 2 : catégories rapides ============ -->
+  <nav class="subnav" aria-label="Catégories principales">
+    <div class="all-cat-wrap">
+      <button class="all-cat" onclick="toggleCatMenu(event)" aria-expanded="false" aria-controls="catDropdown">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M3 6H21M3 12H21M3 18H21" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        Toutes les catégories
+      </button>
+      <div class="cat-dropdown" id="catDropdown" role="menu">
+        <a href="#catalogue" role="menuitem" onclick="filterCatalogue('Toutes')">Toutes les catégories</a>
+        <a href="#catalogue" role="menuitem" onclick="filterCatalogue('Électronique')">Électronique</a>
+        <a href="#catalogue" role="menuitem" onclick="filterCatalogue('Mode Femme')">Mode Femme</a>
+        <a href="#catalogue" role="menuitem" onclick="filterCatalogue('Mode Homme')">Mode Homme</a>
+        <a href="#catalogue" role="menuitem" onclick="filterCatalogue('Maison &amp; Cuisine')">Maison &amp; Cuisine</a>
+        <a href="#catalogue" role="menuitem" onclick="filterCatalogue('Téléphones')">Téléphones</a>
+        <a href="#catalogue" role="menuitem" onclick="filterCatalogue('Beauté &amp; Santé')">Beauté &amp; Santé</a>
+        <a href="#catalogue" role="menuitem" onclick="filterCatalogue('Alimentation')">Alimentation</a>
+        <a href="#catalogue" role="menuitem" onclick="filterCatalogue('Enfants')">Enfants</a>
+      </div>
+    </div>
+    <a href="#offres">Offres du jour</a>
+    <a href="vendeurs.html">Vendre sur AfriMarket</a>
+    <a href="vendeurs.html#tarifs">Devenir Premium</a>
+    <a href="#nouveautes">Nouveautés</a>
+    <a href="#catalogue" onclick="filterCatalogue('Mode')">Mode</a>
+    <a href="#catalogue" onclick="filterCatalogue('Maison &amp; Cuisine')">Maison &amp; Cuisine</a>
+    <a href="contact.html">Assistance</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</header>
+
+<main>
+  <!-- ============ CONTENU DU COMPTE ============ -->
+  <div class="account-page" id="accountPage"></div>
+</main>
+
+<!-- ============ RETOUR EN HAUT ============ -->
+<button id="backToTop" aria-label="Retour en haut de page">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer" role="contentinfo">
+  <div class="footer-cols wrap">
+    <div>
+      <h5>À propos d'AfriMarket</h5>
+      <ul>
+        <li><a href="quisommesnous.html">Qui sommes-nous</a></li>
+        <li><a href="vendeurs.html">Comment ça marche</a></li>
+        <li><a href="quisommesnous.html#engagements">Nos engagements</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Gagnez de l'argent avec nous</h5>
+      <ul>
+        <li><a href="vendeurs.html">Vendre sur AfriMarket</a></li>
+        <li><a href="vendeurs.html#tarifs">Devenir vendeur Premium</a></li>
+        <li><a href="#offres">Lancer une campagne publicitaire</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Moyens de paiement</h5>
+      <ul>
+        <li>Orange Money</li>
+        <li>Moov Money</li>
+        <li>Paiement à la livraison</li>
+      </ul>
+    </div>
+    <div>
+      <h5>Besoin d'aide</h5>
+      <ul>
+        <li><a href="contact.html">Assistance client</a></li>
+        <li><a href="panier.html">Suivre ma commande</a></li>
+        <li><a href="contact.html">Nous contacter</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <a href="index.html" class="logo footer-logo" aria-label="AfriMarket — Accueil">
+      Afri<span class="logo-accent">Market</span>
+    </a>
+    <div class="footer-meta">
+      <span>Français — Burkina Faso</span>
+      <span>FCFA</span>
+    </div>
+  </div>
+  <div class="footer-copy">&copy; 2026 AfriMarket. Tous droits réservés. Site de démonstration.</div>
+</footer>
+
+<script src="auth.js"></script>
+<script src="cart.js"></script>
+<script src="search.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+  var page=document.getElementById('accountPage');
+  var user=null;
+
+  try{
+    if(window.AfriAuth&&typeof window.AfriAuth.getUser==='function'){
+      user=window.AfriAuth.getUser();
+    }
+  }catch(e){}
+
+  if(!user){
+    page.innerHTML='<div class="account-logged-out">'+
+      '<h2>Vous n\'êtes pas connecté</h2>'+
+      '<p>Connectez-vous ou créez un compte pour accéder à votre espace personnel.</p>'+
+      '<a href="index.html">Se connecter</a>'+
+    '</div>';
+    return;
+  }
+
+  var name=user.name||user.prenom||'Utilisateur';
+  var email=user.email||'—';
+  var phone=user.phone||user.telephone||'—';
+  var role=user.role||'client';
+  var date=user.date||user.createdAt||'—';
+  var initials=name.split(' ').map(function(w){return w.charAt(0)}).join('').substring(0,2).toUpperCase();
+
+  var roleLabel=role==='vendor'||role==='vendeur'?'Vendeur':'Client';
+
+  var html=
+    '<div class="profile-card">'+
+      '<div class="profile-header">'+
+        '<div class="profile-avatar">'+initials+'</div>'+
+        '<h2>'+name+'</h2>'+
+        '<span class="role-badge">'+roleLabel+'</span>'+
+      '</div>'+
+      '<div class="profile-body">'+
+        '<div class="info-row"><span class="info-label">Nom complet</span><span class="info-value">'+name+'</span></div>'+
+        '<div class="info-row"><span class="info-label">Adresse e-mail</span><span class="info-value">'+email+'</span></div>'+
+        '<div class="info-row"><span class="info-label">Téléphone</span><span class="info-value">'+phone+'</span></div>'+
+        '<div class="info-row"><span class="info-label">Type de compte</span><span class="info-value">'+roleLabel+'</span></div>'+
+        '<div class="info-row"><span class="info-label">Inscrit le</span><span class="info-value">'+date+'</span></div>'+
+      '</div>'+
+    '</div>'+
+
+    '<h3 class="section-title">Actions rapides</h3>'+
+    '<div class="actions-grid">'+
+      '<a class="action-card" href="#">'+
+        '<span class="action-icon">📦</span>'+
+        '<span class="action-label">Mes commandes</span>'+
+        '<span class="action-sub">0 commande</span>'+
+      '</a>'+
+      '<a class="action-card" href="#">'+
+        '<span class="action-icon">❤️</span>'+
+        '<span class="action-label">Mes favoris</span>'+
+        '<span class="action-sub">Voir mes produits sauvegardés</span>'+
+      '</a>'+
+      '<a class="action-card" href="panier.html">'+
+        '<span class="action-icon">🛒</span>'+
+        '<span class="action-label">Mon panier</span>'+
+        '<span class="action-sub">Voir le panier</span>'+
+      '</a>'+
+      '<a class="action-card" href="creer-boutique.html">'+
+        '<span class="action-icon">🏪</span>'+
+        '<span class="action-label">Créer ma boutique</span>'+
+        '<span class="action-sub">Devenir vendeur</span>'+
+      '</a>'+
+    '</div>'+
+
+    '<div class="settings-section">'+
+      '<h3 class="section-title">Paramètres</h3>'+
+      '<div class="settings-buttons">'+
+        '<button class="btn-edit" onclick="toggleEditForm()">Modifier mon profil</button>'+
+        '<button class="btn-logout" onclick="handleLogout()">Se déconnecter</button>'+
+      '</div>'+
+      '<div class="edit-form" id="editForm">'+
+        '<label for="editName">Nom complet</label>'+
+        '<input type="text" id="editName" value="'+name.replace(/"/g,'&quot;')+'" />'+
+        '<label for="editEmail">Adresse e-mail</label>'+
+        '<input type="email" id="editEmail" value="'+email.replace(/"/g,'&quot;')+'" />'+
+        '<label for="editPhone">Téléphone</label>'+
+        '<input type="tel" id="editPhone" value="'+phone.replace(/"/g,'&quot;')+'" />'+
+        '<div class="form-actions">'+
+          '<button class="btn-save" onclick="saveProfile()">Enregistrer</button>'+
+          '<button class="btn-cancel" onclick="toggleEditForm()">Annuler</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+
+  page.innerHTML=html;
+
+  window.toggleEditForm=function(){
+    var f=document.getElementById('editForm');
+    f.classList.toggle('show');
+    if(f.classList.contains('show')){
+      f.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+  };
+
+  window.saveProfile=function(){
+    var n=document.getElementById('editName').value.trim();
+    var e=document.getElementById('editEmail').value.trim();
+    var p=document.getElementById('editPhone').value.trim();
+    if(!n||!e){alert('Le nom et l\'e-mail sont obligatoires.');return;}
+    var updated=Object.assign({},user,{name:n,email:e,phone:p});
+    try{localStorage.setItem('afrimarket_user',JSON.stringify(updated));}catch(ex){}
+    if(window.AfriAuth&&typeof window.AfriAuth.updateUser==='function'){
+      try{window.AfriAuth.updateUser(updated);}catch(ex){}
+    }
+    location.reload();
+  };
+
+  window.handleLogout=function(){
+    if(!confirm('Voulez-vous vraiment vous déconnecter ?'))return;
+    try{
+      if(window.AfriAuth&&typeof window.AfriAuth.logout==='function'){
+        window.AfriAuth.logout();
+      }else{
+        localStorage.removeItem('afrimarket_user');
+      }
+    }catch(ex){localStorage.removeItem('afrimarket_user');}
+    location.href='index.html';
+  };
+})();
+</script>
+</body>
+</html>

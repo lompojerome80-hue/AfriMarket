@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page non trouvée | AfriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+            color: #1a1a2e;
+        }
+
+        .error-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(255,255,255,0.08) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .error-container {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: #fff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .error-code {
+            font-size: 160px;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.15);
+            line-height: 1;
+            margin-bottom: 20px;
+            letter-spacing: -10px;
+            user-select: none;
+        }
+
+        .error-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 48px 40px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15),
+                        0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+        }
+
+        .error-heading {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1a1a2e;
+        }
+
+        .error-text {
+            font-size: 16px;
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 36px;
+            max-width: 420px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            transform: translateY(-2px);
+        }
+
+        footer {
+            background: #1a1a2e;
+            color: #9ca3af;
+            padding: 32px 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .error-code {
+                font-size: 100px;
+                letter-spacing: -5px;
+            }
+            .error-card {
+                padding: 36px 24px;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="error-section">
+        <div class="error-container">
+            <div class="logo">
+                <div class="logo-icon">🛒</div>
+                <span class="logo-text">AfriMarket</span>
+            </div>
+            <div class="error-code">404</div>
+            <div class="error-card">
+                <h1 class="error-heading">Page non trouvée</h1>
+                <p class="error-text">
+                    Oups ! La page que vous recherchez n'existe pas ou a été déplacée.
+                    Pas de souci, vous pouvez continuer vos achats.
+                </p>
+                <div class="button-group">
+                    <a href="index.html" class="btn btn-primary">🏠 Retour à l'accueil</a>
+                    <a href="index.html#catalogue" class="btn btn-secondary">📦 Voir le catalogue</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 AfriMarket - Le marketplace du Burkina Faso. Tous droits réservés.</p>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+</body>
+</html>

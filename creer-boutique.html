@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Créer ma boutique — AfriMarket</title>
+<meta name="description" content="Créez votre boutique AfriMarket en quelques minutes. Vendez vos produits à tout le Burkina Faso avec Orange Money et Moov Money." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23E62E04' width='100' height='100' rx='20'/%3E%3Ctext x='50' y='68' font-size='55' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
+<meta name="theme-color" content="#0F0E23" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  :root {
+    --nav-dark: #0F0E23;
+    --nav-dark-2: #181730;
+    --piment: #E62E04;
+    --piment-lt: #FF6B3D;
+    --or: #F2A93B;
+    --kola: #1E7A46;
+    --ink: #1A1A1A;
+    --muted: #62606F;
+    --muted-soft: #8E8C9E;
+    --line: #E7E4EE;
+    --line-soft: #F0EDF5;
+    --paper: #FFFFFF;
+    --paper-2: #F6F5F9;
+    --paper-3: #EDEDF3;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 18px;
+    --maxw: 680px;
+    --shadow-sm: 0 1px 3px rgba(20,19,43,0.06);
+    --shadow-md: 0 4px 16px rgba(20,19,43,0.08);
+    --shadow-lg: 0 12px 40px rgba(20,19,43,0.12);
+    --shadow-xl: 0 24px 60px rgba(20,19,43,0.16);
+    --glow: 0 0 0 3px rgba(230,46,4,0.12), 0 4px 16px rgba(230,46,4,0.08);
+    --transition: .25s cubic-bezier(.4,0,.2,1);
+  }
+
+  body {
+    background: linear-gradient(175deg, #F0EEF5 0%, #F7F6F9 40%, #fff 100%);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Page Header ── */
+  .page-head {
+    text-align: center;
+    padding: 48px 24px 8px;
+    max-width: 620px;
+    margin: 0 auto;
+    animation: fadeUp .6s cubic-bezier(.22,.61,.36,1);
+  }
+  .page-head .eyebrow {
+    color: var(--piment);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(230,46,4,0.08), rgba(242,169,59,0.06));
+    padding: 5px 14px;
+    border-radius: 100px;
+  }
+  .page-head h1 {
+    font-size: 34px;
+    font-weight: 800;
+    margin: 10px 0 14px;
+    letter-spacing: -.03em;
+    line-height: 1.15;
+    background: linear-gradient(135deg, var(--ink) 30%, #3A3860 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .page-head p { color: var(--muted); font-size: 15px; line-height: 1.65; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Steps Track ── */
+  .steps-track {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 32px auto 12px;
+    max-width: 400px;
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+  .step-dot {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--paper-3);
+    border: 2px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--muted-soft);
+    flex-shrink: 0;
+    transition: all .4s cubic-bezier(.22,.61,.36,1);
+  }
+  .step-item.active .step-dot {
+    background: linear-gradient(135deg, var(--piment), var(--piment-lt));
+    border-color: var(--piment);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(230,46,4,0.3);
+    transform: scale(1.1);
+  }
+  .step-item.done .step-dot {
+    background: var(--kola);
+    border-color: var(--kola);
+    color: #fff;
+  }
+  .step-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted-soft);
+    white-space: nowrap;
+    transition: color .3s ease;
+  }
+  .step-item.active .step-label { color: var(--ink); }
+  .step-item.done .step-label { color: var(--kola); }
+  .step-line {
+    flex: 1; height: 2px; background: var(--line);
+    border-radius: 1px; min-width: 20px;
+    transition: background .4s ease;
+  }
+  .step-line.done { background: var(--kola); }
+  @media (max-width: 500px) { .step-label { display: none; } }
+
+  /* ── Form Builder ── */
+  form.builder {
+    max-width: var(--maxw);
+    margin: 24px auto 80px;
+    padding: 0 20px;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 32px 34px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    border: 1px solid rgba(231,228,238,0.5);
+    position: relative;
+    transition: box-shadow var(--transition), transform var(--transition);
+    animation: fadeUp .5s cubic-bezier(.22,.61,.36,1) backwards;
+  }
+  .card:nth-child(2) { animation-delay: .08s; }
+  .card:nth-child(3) { animation-delay: .16s; }
+  .card:nth-child(4) { animation-delay: .24s; }
+  .card:nth-child(5) { animation-delay: .32s; }
+  .card:hover { box-shadow: var(--shadow-md); }
+  .card h2 {
+    font-size: 17px; font-weight: 700;
+    margin: 0 0 5px;
+    display: flex; align-items: center; gap: 10px;
+    letter-spacing: -.01em;
+  }
+  .card h2 .card-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .card .card-sub {
+    font-size: 13px; color: var(--muted);
+    margin: 0 0 22px; line-height: 1.55;
+  }
+
+  /* ── Fields ── */
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 600;
+    margin-bottom: 7px; color: #2D2B42;
+  }
+  .field .hint { font-size: 11.5px; color: var(--muted); font-weight: 400; }
+  .field input[type="text"],
+  .field input[type="url"],
+  .field input[type="password"],
+  .field textarea {
+    width: 100%; font-size: 14px; padding: 12px 15px;
+    border: 1.5px solid var(--line); border-radius: var(--radius);
+    color: var(--ink); resize: vertical;
+    background: #FDFCFE;
+    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+  }
+  .field input::placeholder, .field textarea::placeholder { color: #B5B3C0; }
+  .field input:focus, .field textarea:focus {
+    outline: none; border-color: var(--piment);
+    box-shadow: var(--glow); background: #fff;
+  }
+  .field textarea { min-height: 100px; }
+
+  .field-wrap { position: relative; }
+  .field-wrap input { padding-right: 44px; }
+  .pw-toggle {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; padding: 6px;
+    color: var(--muted-soft); cursor: pointer;
+    border-radius: 6px; transition: color var(--transition), background var(--transition);
+  }
+  .pw-toggle:hover { color: var(--ink); background: var(--paper-2); }
+  .pw-toggle svg { width: 18px; height: 18px; display: block; }
+
+  .char-count {
+    font-size: 11px; color: var(--muted-soft); text-align: right;
+    margin-top: 4px; transition: color var(--transition);
+  }
+  .char-count.warn { color: var(--piment); font-weight: 600; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .row2 { grid-template-columns: 1fr; } }
+
+  /* ── URL Preview ── */
+  .url-preview {
+    background: linear-gradient(135deg, #F8F7FB, #F2F0F6);
+    border: 1px dashed #D4D0E0; border-radius: var(--radius);
+    padding: 12px 16px; font-size: 13px; color: var(--muted);
+    margin-top: 10px; word-break: break-all;
+    transition: background var(--transition);
+  }
+  .url-preview:hover { background: #F0EDF5; }
+  .url-preview strong { color: var(--piment); font-weight: 700; }
+
+  /* ── Upload Box ── */
+  .upload-box {
+    border: 2px dashed #D0CDE0; border-radius: var(--radius);
+    text-align: center; padding: 28px 20px;
+    cursor: pointer; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #FDFCFF, #F8F7FB);
+    transition: all var(--transition);
+  }
+  .upload-box:hover {
+    border-color: var(--or);
+    background: linear-gradient(135deg, #FFFDF7, #FFF9EE);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(242,169,59,0.12);
+  }
+  .upload-box.dragover {
+    border-color: var(--piment);
+    background: #FFF4F0;
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(230,46,4,0.15);
+  }
+  .upload-box.has-img { padding: 0; border-style: solid; border-color: var(--line); border-radius: var(--radius); }
+  .upload-box.has-img:hover { transform: none; box-shadow: var(--shadow-md); }
+  .upload-box img { width: 100%; object-fit: cover; }
+  .upload-box.logo-box { width: 120px; height: 120px; border-radius: 50%; margin: 0 auto; }
+  .upload-box.logo-box img { height: 100%; }
+  .upload-box.banner-box { height: 170px; }
+  .upload-box.banner-box img { height: 100%; }
+  .upload-box input { display: none; }
+  .upload-label { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+  .upload-label svg { display: block; margin: 0 auto 8px; opacity: .5; transition: opacity var(--transition); }
+  .upload-box:hover .upload-label svg { opacity: 1; }
+  .upload-hint { font-size: 11px; color: var(--muted-soft); margin-top: 6px; }
+
+  /* ── Social Rows ── */
+  .social-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 12px;
+  }
+  .social-row .icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; color: #fff; font-size: 11px; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: transform var(--transition);
+  }
+  .social-row:hover .icon { transform: scale(1.08); }
+  .social-row input {
+    flex: 1; font-size: 13.5px; padding: 11px 14px;
+    border: 1.5px solid var(--line); border-radius: var(--radius);
+    background: #FDFCFF;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  .social-row input::placeholder { color: #B5B3C0; }
+  .social-row input:focus { outline: none; border-color: var(--piment); box-shadow: var(--glow); }
+
+  /* ── Product Rows ── */
+  .product-row {
+    display: grid; grid-template-columns: 60px 1.6fr 1fr auto;
+    gap: 12px; align-items: center;
+    margin-bottom: 12px; padding: 12px;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, #FDFCFF, #F9F8FB);
+    border: 1px solid rgba(231,228,238,0.4);
+    transition: all var(--transition);
+    animation: fadeUp .4s cubic-bezier(.22,.61,.36,1) backwards;
+  }
+  .product-row:hover { background: #fff; border-color: var(--line); box-shadow: var(--shadow-sm); }
+  @media (max-width: 600px) { .product-row { grid-template-columns: 50px 1fr; } .product-row input:nth-child(3) { grid-column: span 2; } }
+  .product-thumb {
+    width: 56px; height: 56px; border-radius: 10px;
+    border: 2px dashed #D0CDE0;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; overflow: hidden;
+    background: linear-gradient(135deg, #FDFCFF, #F5F3F8);
+    transition: all var(--transition);
+  }
+  .product-thumb:hover { border-color: var(--piment); background: #FFF4F0; transform: scale(1.05); }
+  .product-thumb input[type="file"] { display: none; }
+  .product-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+  .product-row input {
+    font-size: 13px; padding: 10px 13px;
+    border: 1.5px solid var(--line); border-radius: var(--radius);
+    width: 100%; background: #fff;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  .product-row input:focus { outline: none; border-color: var(--piment); box-shadow: 0 0 0 3px rgba(230,46,4,0.08); }
+  .remove-product {
+    background: none; border: none; color: var(--muted-soft);
+    padding: 8px; border-radius: 8px;
+    transition: all var(--transition);
+  }
+  .remove-product:hover { color: var(--piment); background: #FFF0EC; transform: scale(1.1); }
+  .add-product-btn {
+    background: none; border: 2px dashed #D0CDE0;
+    border-radius: var(--radius); padding: 14px;
+    width: 100%; font-size: 13.5px; font-weight: 600;
+    color: var(--piment); margin-top: 8px;
+    transition: all var(--transition);
+  }
+  .add-product-btn:hover { border-color: var(--piment); background: #FFF4F0; transform: translateY(-1px); }
+
+  /* ── Submit Button ── */
+  .submit-btn {
+    width: 100%; background: linear-gradient(135deg, var(--piment), #D42804);
+    color: #fff; border: none; padding: 17px;
+    border-radius: 100px; font-size: 15.5px; font-weight: 700;
+    letter-spacing: -.01em; margin-top: 10px;
+    box-shadow: 0 4px 20px rgba(230,46,4,0.25), 0 1px 3px rgba(230,46,4,0.15);
+    transition: all var(--transition);
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .submit-btn:hover { background: linear-gradient(135deg, var(--piment-lt), var(--piment)); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(230,46,4,0.3), 0 2px 6px rgba(230,46,4,0.2); }
+  .submit-btn:active { transform: translateY(0); }
+  .submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none !important; }
+  .submit-btn .spinner {
+    width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin .7s linear infinite; display: none;
+  }
+  .submit-btn.loading .spinner { display: block; }
+  .submit-btn.loading .btn-text { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Form Error ── */
+  .form-error {
+    background: linear-gradient(135deg, #FEF2F2, #FEE2E2);
+    color: #B91C1C; border-radius: var(--radius);
+    padding: 14px 18px; font-size: 13px;
+    margin-bottom: 18px; display: none;
+    border: 1px solid rgba(185,28,28,0.1); font-weight: 500;
+    animation: shake .4s ease;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  /* ── Success Screen ── */
+  #successScreen {
+    display: none; max-width: 580px;
+    margin: 40px auto 80px; text-align: center; padding: 0 20px;
+    animation: fadeUp .6s cubic-bezier(.22,.61,.36,1);
+  }
+  .success-check {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    box-shadow: 0 8px 24px rgba(30,122,70,0.15);
+    animation: popIn .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  #successScreen h2 { font-size: 26px; font-weight: 800; margin: 0 0 10px; letter-spacing: -.02em; }
+  #successScreen p { color: var(--muted); margin: 0 0 28px; font-size: 15px; }
+
+  .link-box {
+    background: linear-gradient(135deg, var(--nav-dark), var(--nav-dark-2));
+    color: #fff; border-radius: var(--radius-lg);
+    padding: 26px; margin-bottom: 16px;
+    box-shadow: var(--shadow-lg); border: 1px solid rgba(255,255,255,0.05);
+    text-align: left; transition: transform var(--transition);
+  }
+  .link-box:hover { transform: translateY(-2px); }
+  .link-box .label {
+    font-size: 11px; color: #9C99B6; margin-bottom: 10px;
+    letter-spacing: .06em; text-transform: uppercase; font-weight: 600;
+  }
+  .link-box .pretty-url {
+    font-size: 17px; font-weight: 700; color: var(--or);
+    word-break: break-all; margin-bottom: 14px;
+  }
+  .link-box .real-link {
+    background: rgba(255,255,255,0.06); border-radius: var(--radius);
+    padding: 12px 16px; font-size: 12.5px;
+    word-break: break-all; border: 1px solid rgba(255,255,255,0.05);
+  }
+  .link-box .note { font-size: 11px; color: #9C99B6; margin-top: 14px; line-height: 1.5; }
+
+  .pw-box {
+    background: linear-gradient(135deg, #3D2B00, #2E2000);
+    border: 1px solid rgba(253,230,138,0.15);
+  }
+
+  .success-ctas {
+    display: flex; gap: 14px; justify-content: center;
+    flex-wrap: wrap; margin-top: 24px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--piment), #D42804);
+    color: #fff; padding: 14px 28px; border-radius: 100px;
+    font-weight: 700; font-size: 14px; border: none;
+    box-shadow: 0 4px 16px rgba(230,46,4,0.25);
+    transition: all var(--transition);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(230,46,4,0.3); }
+  .btn-outline {
+    border: 1.5px solid var(--line); color: var(--ink);
+    padding: 14px 28px; border-radius: 100px;
+    font-weight: 700; font-size: 14px; background: #fff;
+    transition: all var(--transition);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-outline:hover { border-color: #C0BDD0; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+
+  /* ── Confetti ── */
+  .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden; }
+  .confetti-piece {
+    position: absolute; width: 10px; height: 10px;
+    top: -20px; opacity: 0;
+    animation: confettiFall 3s ease-in forwards;
+  }
+  @keyframes confettiFall {
+    0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="topbar" role="banner">
+  <div class="topbar-inner">
+    <a href="index.html" class="logo" aria-label="AfriMarket — Accueil">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 8L5.5 4H18.5L20 8" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8H20V18C20 19.1 19.1 20 18 20H6C4.9 20 4 19.1 4 18V8Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12C9 13.7 10.3 15 12 15C13.7 15 15 13.7 15 12" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </span>
+      Afri<span class="logo-accent">Market</span>
+    </a>
+    <nav style="display:flex;align-items:center;gap:16px;">
+      <a href="vendeurs.html" style="color:#CFCFE0;font-size:13px;font-weight:500;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#CFCFE0'">Espace vendeur</a>
+      <a href="index.html" style="color:#CFCFE0;font-size:13px;font-weight:500;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#CFCFE0'">Accueil</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="page-head">
+    <p class="eyebrow">ESPACE VENDEUR</p>
+    <h1>Créez votre boutique</h1>
+    <p>En quelques étapes, obtenez votre page boutique personnelle avec un lien à partager.</p>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps-track" id="stepsTrack">
+    <div class="step-item active" data-step="1">
+      <div class="step-dot">1</div>
+      <span class="step-label">Identité</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item" data-step="2">
+      <div class="step-dot">2</div>
+      <span class="step-label">Images</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item" data-step="3">
+      <div class="step-dot">3</div>
+      <span class="step-label">Détails</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item" data-step="4">
+      <div class="step-dot">4</div>
+      <span class="step-label">Produits</span>
+    </div>
+  </div>
+
+  <form class="builder" id="boutiqueForm" onsubmit="return submitBoutique(event)">
+    <div class="form-error" id="formError"></div>
+
+    <!-- Étape 1 : Identité -->
+    <div class="card" data-step="1">
+      <h2><span class="card-icon" style="background:linear-gradient(135deg,#FFF0EC,#FFE4DB);">🏪</span> Nom de votre boutique</h2>
+      <p class="card-sub">C'est le nom qui apparaîtra sur votre page et dans votre lien personnel.</p>
+      <div class="field">
+        <label for="fNom">Nom de la boutique</label>
+        <input type="text" id="fNom" placeholder="Ex : Chez Aïcha Mode" oninput="updateUrlPreview()" required maxlength="50" />
+        <div class="url-preview">Votre lien : <strong>afrimarket.bf/boutique/</strong><strong id="slugPreview" style="color:var(--ink);">nom-de-votre-boutique</strong></div>
+      </div>
+      <div class="field">
+        <label for="fPassword">Mot de passe vendeur <span class="hint">(pour votre tableau de bord)</span></label>
+        <div class="field-wrap">
+          <input type="password" id="fPassword" placeholder="Choisissez un mot de passe" required minlength="4" />
+          <button type="button" class="pw-toggle" onclick="togglePw()" aria-label="Afficher le mot de passe">
+            <svg id="pwEye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Étape 2 : Images -->
+    <div class="card" data-step="2">
+      <h2><span class="card-icon" style="background:linear-gradient(135deg,#FFF8E1,#FFF3CD);">🖼️</span> Logo et bannière</h2>
+      <p class="card-sub">Ces images apparaîtront en haut de votre page boutique.</p>
+      <div class="field">
+        <label>Bannière <span class="hint">(format paysage recommandé)</span></label>
+        <label class="upload-box banner-box" id="bannerBox"
+          ondragover="event.preventDefault(); this.classList.add('dragover')"
+          ondragleave="this.classList.remove('dragover')"
+          ondrop="event.preventDefault(); this.classList.remove('dragover'); handleDrop(event, 'bannerBox', 'bannerData')">
+          <input type="file" accept="image/*" onchange="previewImage(this, 'bannerBox', 'bannerData')" />
+          <span class="upload-label" id="bannerLabel">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#62606F" stroke-width="1.6" stroke-linecap="round"/><polyline points="17 8 12 3 7 8" stroke="#62606F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#62606F" stroke-width="1.6" stroke-linecap="round"/></svg>
+            Glissez une image ou cliquez pour parcourir
+          </span>
+          <p class="upload-hint">JPG, PNG — Max 5 Mo</p>
+        </label>
+      </div>
+      <div class="field" style="text-align:center;">
+        <label>Logo <span class="hint">(carré recommandé)</span></label>
+        <label class="upload-box logo-box" id="logoBox"
+          ondragover="event.preventDefault(); this.classList.add('dragover')"
+          ondragleave="this.classList.remove('dragover')"
+          ondrop="event.preventDefault(); this.classList.remove('dragover'); handleDrop(event, 'logoBox', 'logoData')">
+          <input type="file" accept="image/*" onchange="previewImage(this, 'logoBox', 'logoData')" />
+          <span class="upload-label" id="logoLabel">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="#62606F" stroke-width="1.6"/><path d="M5 20c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="#62606F" stroke-width="1.6" stroke-linecap="round"/></svg>
+            Logo
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Étape 3 : Détails -->
+    <div class="card" data-step="3">
+      <h2><span class="card-icon" style="background:linear-gradient(135deg,#E8F5E9,#C8E6C9);">📖</span> Votre histoire</h2>
+      <p class="card-sub">Présentez votre boutique — qui vous êtes, ce que vous vendez.</p>
+      <div class="field">
+        <label for="fHistoire">Description</label>
+        <textarea id="fHistoire" rows="4" maxlength="300" placeholder="Ex : Passionnée de couture depuis 10 ans, je propose des créations en tissu wax fabriquées à Ouagadougou..."
+          oninput="updateCharCount(this, 'histoireCount', 300)"></textarea>
+        <div class="char-count" id="histoireCount">0 / 300</div>
+      </div>
+    </div>
+
+    <!-- Réseaux sociaux -->
+    <div class="card" data-step="3">
+      <h2><span class="card-icon" style="background:linear-gradient(135deg,#E3F2FD,#BBDEFB);">📱</span> Réseaux sociaux</h2>
+      <p class="card-sub">Facultatif — vos clients pourront vous suivre aussi ailleurs.</p>
+      <div class="social-row">
+        <div class="icon" style="background:#1877F2">FB</div>
+        <input type="url" id="fFacebook" placeholder="facebook.com/votre-page" />
+      </div>
+      <div class="social-row">
+        <div class="icon" style="background:#E1306C">IG</div>
+        <input type="url" id="fInstagram" placeholder="instagram.com/votre-compte" />
+      </div>
+      <div class="social-row">
+        <div class="icon" style="background:#000">TT</div>
+        <input type="url" id="fTiktok" placeholder="tiktok.com/@votre-compte" />
+      </div>
+      <div class="social-row">
+        <div class="icon" style="background:#25D366">WA</div>
+        <input type="url" id="fWhatsapp" placeholder="wa.me/226..." />
+      </div>
+    </div>
+
+    <!-- Étape 4 : Produits -->
+    <div class="card" data-step="4">
+      <h2><span class="card-icon" style="background:linear-gradient(135deg,#F3E5F5,#E1BEE7);">🛍️</span> Vos premiers produits</h2>
+      <p class="card-sub">Ajoutez jusqu'à 3 produits pour démarrer (vous pourrez en ajouter d'autres plus tard).</p>
+      <div id="productList"></div>
+      <button type="button" class="add-product-btn" id="addProductBtn" onclick="addProductRow()">+ Ajouter un produit</button>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">
+      <span class="btn-text">Créer ma boutique</span>
+      <span class="spinner"></span>
+    </button>
+  </form>
+</main>
+
+<!-- ===== Écran de confirmation ===== -->
+<div id="successScreen">
+  <div class="success-check">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#1E7A46" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <h2>Votre boutique est créée !</h2>
+  <p>Elle est prête à être partagée avec vos clients.</p>
+
+  <div class="link-box">
+    <div class="label">VOTRE LIEN PERSONNEL</div>
+    <div class="pretty-url" id="prettyUrlDisplay">afrimarket.bf/boutique/...</div>
+    <div class="real-link">
+      Lien fonctionnel : <span id="realUrlDisplay" style="color:var(--or);"></span>
+    </div>
+    <div class="note">Copiez ce lien et partagez-le sur vos réseaux sociaux.</div>
+  </div>
+
+  <div class="link-box pw-box">
+    <div class="label" style="color:#FDE68A;">🔒 VOTRE MOT DE PASSE VENDEUR</div>
+    <div class="pretty-url" style="color:#FDE68A;font-size:15px;">Gardez-le précieusement — il n'est pas récupérable</div>
+    <div class="note" style="color:#FCD34D;">Il vous servira pour accéder à votre tableau de bord des ventes.</div>
+  </div>
+
+  <div class="success-ctas">
+    <a href="#" id="viewShopBtn" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Voir ma boutique
+    </a>
+    <a href="#" id="dashboardBtn" class="btn-outline">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Tableau de bord
+    </a>
+  </div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer" role="contentinfo">
+  <div class="footer-cols wrap">
+    <div>
+      <h5>À propos d'AfriMarket</h5>
+      <ul>
+        <li><a href="quisommesnous.html">Qui sommes-nous</a></li>
+        <li><a href="vendeurs.html">Comment ça marche</a></li>
+        <li><a href="quisommesnous.html#engagements">Nos engagements</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Gagnez de l'argent</h5>
+      <ul>
+        <li><a href="vendeurs.html">Vendre sur AfriMarket</a></li>
+        <li><a href="vendeurs.html#tarifs">Devenir Premium</a></li>
+        <li><a href="creer-boutique.html">Créer ma boutique</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Moyens de paiement</h5>
+      <ul>
+        <li>Orange Money</li>
+        <li>Moov Money</li>
+        <li>Paiement à la livraison</li>
+      </ul>
+    </div>
+    <div>
+      <h5>Besoin d'aide</h5>
+      <ul>
+        <li><a href="contact.html">Assistance client</a></li>
+        <li><a href="panier.html">Suivre ma commande</a></li>
+        <li><a href="contact.html">Nous contacter</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <a href="index.html" class="logo footer-logo">Afri<span class="logo-accent">Market</span></a>
+    <div class="footer-meta"><span>Français — Burkina Faso</span><span>FCFA</span></div>
+  </div>
+  <div class="footer-copy">&copy; 2026 AfriMarket. Tous droits réservés.</div>
+</footer>
+
+<!-- Back to top -->
+<button id="backToTop" aria-label="Retour en haut">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<script src="auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabaseClient.js"></script>
+<script src="boutique.js"></script>
+<script src="cart.js"></script>
+<script>
+  let productCount = 0;
+  let bannerData = '';
+  let logoData = '';
+
+  /* ── URL Preview ── */
+  function updateUrlPreview() {
+    const nom = document.getElementById('fNom').value || 'nom-de-votre-boutique';
+    document.getElementById('slugPreview').textContent = slugify(nom) || 'nom-de-votre-boutique';
+  }
+
+  /* ── Password Toggle ── */
+  function togglePw() {
+    const inp = document.getElementById('fPassword');
+    const isPw = inp.type === 'password';
+    inp.type = isPw ? 'text' : 'password';
+    document.getElementById('pwEye').innerHTML = isPw
+      ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+      : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+
+  /* ── Character Counter ── */
+  function updateCharCount(el, countId, max) {
+    const count = el.value.length;
+    const el2 = document.getElementById(countId);
+    el2.textContent = count + ' / ' + max;
+    el2.classList.toggle('warn', count > max * 0.9);
+  }
+
+  /* ── Image Preview ── */
+  function previewImage(input, boxId, varName) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('Fichier trop volumineux (max 5 Mo).'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (varName === 'bannerData') bannerData = e.target.result;
+      if (varName === 'logoData') logoData = e.target.result;
+      const box = document.getElementById(boxId);
+      box.classList.add('has-img');
+      box.innerHTML = '<img src="' + e.target.result + '" /><input type="file" accept="image/*" onchange="previewImage(this, \'' + boxId + '\', \'' + varName + '\')" style="display:none" />';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ── Drag & Drop ── */
+  function handleDrop(e, boxId, varName) {
+    const file = e.dataTransfer.files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    const box = document.getElementById(boxId);
+    const fileInput = box.querySelector('input[type="file"]');
+    if (fileInput) {
+      const dt2 = new DataTransfer();
+      dt2.items.add(file);
+      fileInput.files = dt2.files;
+      fileInput.dispatchEvent(new Event('change'));
+    }
+  }
+
+  /* ── Product Rows ── */
+  function addProductRow() {
+    if (productCount >= 3) return;
+    productCount++;
+    const row = document.createElement('div');
+    row.className = 'product-row';
+    row.style.animationDelay = (productCount * 0.08) + 's';
+    row.dataset.img = '';
+    row.innerHTML = '<label class="product-thumb"><input type="file" accept="image/*" onchange="previewProductImg(this)" /><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#9CA3AF" stroke-width="1.6" stroke-linecap="round"/><polyline points="17 8 12 3 7 8" stroke="#9CA3AF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></label><input type="text" placeholder="Nom du produit" class="prod-title" /><input type="text" placeholder="Prix (FCFA)" class="prod-price" /><button type="button" class="remove-product" onclick="this.closest(\'.product-row\').remove(); productCount--; document.getElementById(\'addProductBtn\').style.display=\'block\';"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>';
+    document.getElementById('productList').appendChild(row);
+    if (productCount >= 3) document.getElementById('addProductBtn').style.display = 'none';
+  }
+
+  function previewProductImg(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const thumb = input.closest('.product-thumb');
+      thumb.dataset.img = e.target.result;
+      thumb.innerHTML = '<img src="' + e.target.result + '" /><input type="file" accept="image/*" onchange="previewProductImg(this)" style="display:none" />';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  addProductRow();
+
+  /* ── Steps Animation ── */
+  function updateSteps() {
+    const cards = document.querySelectorAll('.card[data-step]');
+    let activeStep = 1;
+    const scrollY = window.scrollY + window.innerHeight / 3;
+    cards.forEach((card) => {
+      if (card.offsetTop <= scrollY) activeStep = parseInt(card.dataset.step);
+    });
+    document.querySelectorAll('.step-item').forEach((item) => {
+      const s = parseInt(item.dataset.step);
+      item.classList.toggle('active', s === activeStep);
+      item.classList.toggle('done', s < activeStep);
+    });
+    document.querySelectorAll('.step-line').forEach((line, i) => {
+      line.classList.toggle('done', i + 1 < activeStep);
+    });
+  }
+  window.addEventListener('scroll', updateSteps);
+  updateSteps();
+
+  /* ── Back to Top ── */
+  const btt = document.getElementById('backToTop');
+  if (btt) {
+    window.addEventListener('scroll', () => btt.classList.toggle('visible', window.scrollY > 400));
+    btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
+  /* ── Submit ── */
+  async function submitBoutique(e) {
+    e.preventDefault();
+    const errorBox = document.getElementById('formError');
+    errorBox.style.display = 'none';
+
+    const nom = document.getElementById('fNom').value.trim();
+    const password = document.getElementById('fPassword').value;
+    if (!nom) { showError('Le nom de la boutique est obligatoire.'); return false; }
+    if (!password || password.length < 4) { showError('Le mot de passe doit contenir au moins 4 caractères.'); return false; }
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.classList.add('loading');
+
+    try {
+      if (await boutiqueExists(nom)) {
+        showError('Ce nom de boutique est déjà pris. Choisissez-en un autre.');
+        return false;
+      }
+
+      const produits = [];
+      document.querySelectorAll('.product-row').forEach((row) => {
+        const title = row.querySelector('.prod-title').value.trim();
+        const price = parseInt(row.querySelector('.prod-price').value, 10);
+        const img = row.querySelector('.product-thumb').dataset.img;
+        if (title && price) produits.push({ title, price, img: img || 'https://picsum.photos/seed/' + encodeURIComponent(title) + '/400/400' });
+      });
+
+      const slug = await createBoutique({
+        nom, logo: logoData, banniere: bannerData,
+        histoire: document.getElementById('fHistoire').value.trim(),
+        motDePasse: password,
+        reseaux: {
+          facebook: document.getElementById('fFacebook').value.trim(),
+          instagram: document.getElementById('fInstagram').value.trim(),
+          tiktok: document.getElementById('fTiktok').value.trim(),
+          whatsapp: document.getElementById('fWhatsapp').value.trim(),
+        },
+        produits,
+      });
+
+      document.getElementById('boutiqueForm').style.display = 'none';
+      document.getElementById('stepsTrack').style.display = 'none';
+      const successScreen = document.getElementById('successScreen');
+      successScreen.style.display = 'block';
+      document.getElementById('prettyUrlDisplay').textContent = 'afrimarket.bf/boutique/' + slug;
+      document.getElementById('realUrlDisplay').textContent = 'boutique.html?nom=' + slug;
+      document.getElementById('viewShopBtn').href = 'boutique.html?nom=' + slug;
+      document.getElementById('dashboardBtn').href = 'boutique-dashboard.html?nom=' + slug;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      launchConfetti();
+    } catch (err) {
+      console.error(err);
+      showError((err && err.message ? err.message : 'Erreur inconnue') + ' — Consultez la console (F12).');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('loading');
+    }
+    return false;
+  }
+
+  function showError(msg) {
+    const errorBox = document.getElementById('formError');
+    errorBox.textContent = msg;
+    errorBox.style.display = 'block';
+    errorBox.style.animation = 'none';
+    errorBox.offsetHeight;
+    errorBox.style.animation = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ── Confetti ── */
+  function launchConfetti() {
+    const container = document.createElement('div');
+    container.className = 'confetti-container';
+    document.body.appendChild(container);
+    const colors = ['#E62E04', '#F2A93B', '#1E7A46', '#FF6B3D', '#8B5CF6', '#EC4899'];
+    for (let i = 0; i < 60; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + '%';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDelay = Math.random() * 1.5 + 's';
+      piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+      piece.style.width = (6 + Math.random() * 8) + 'px';
+      piece.style.height = (6 + Math.random() * 8) + 'px';
+      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      container.appendChild(piece);
+    }
+    setTimeout(() => container.remove(), 5000);
+  }
+</script>
+</body>
+</html>
