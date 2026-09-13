@@ -1,20 +1,35 @@
-import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PAYMENT_API_BASE } from '../services/paymentApi';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+const Notifications = {};
 
 const TOKENS_KEY = 'afrimarket_push_tokens';
 
 let cachedToken = null;
 let channelReady = false;
+
+let notificationsLoaded = false;
+async function loadNotifications() {
+  if (notificationsLoaded) return;
+  try {
+    const mod = await import('expo-notifications');
+    try {
+      mod.default.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowBanner: true,
+          shouldShowList: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+    } catch {}
+    Notifications.default = mod.default;
+    Notifications.mod = mod;
+  } catch (e) {
+    console.warn('[push] expo-notifications indisponible:', e && e.message);
+  }
+  notificationsLoaded = true;
+}
 
 async function getTokenMap() {
   try { return JSON.parse(await AsyncStorage.getItem(TOKENS_KEY)) || {}; } catch { return {}; }
@@ -27,9 +42,11 @@ async function saveTokenMap(map) {
 async function ensureChannel() {
   if (channelReady) return;
   try {
-    await Notifications.setNotificationChannelAsync('default', {
+    const N = Notifications.mod || Notifications.default;
+    if (!N) return;
+    await N.setNotificationChannelAsync('default', {
       name: 'AfriMarket',
-      importance: Notifications.AndroidImportance?.HIGH || 4,
+      importance: N.AndroidImportance?.HIGH || 4,
     });
   } catch {}
   channelReady = true;
@@ -37,17 +54,20 @@ async function ensureChannel() {
 
 export async function ensurePushReady() {
   try {
-    const perms = await Notifications.getPermissionsAsync();
+    await loadNotifications();
+    const N = Notifications.mod || Notifications.default;
+    if (!N) return false;
+    const perms = await N.getPermissionsAsync();
     let granted = perms.granted;
     if (!granted) {
-      const req = await Notifications.requestPermissionsAsync();
+      const req = await N.requestPermissionsAsync();
       granted = req.granted;
     }
     if (!granted) return false;
     await ensureChannel();
     if (!cachedToken) {
       try {
-        cachedToken = (await Notifications.getExpoPushTokenAsync()).data;
+        cachedToken = (await N.getExpoPushTokenAsync()).data;
       } catch (e) {
         console.warn('[push] ExpoPushToken indisponible (EAS projectId manquant) :', e && e.message);
       }
@@ -79,8 +99,11 @@ export async function registerAccountForPush(accountKey) {
 
 async function scheduleLocal(title, body, data) {
   try {
+    await loadNotifications();
+    const N = Notifications.mod || Notifications.default;
+    if (!N) return;
     await ensureChannel();
-    await Notifications.scheduleNotificationAsync({
+    await N.scheduleNotificationAsync({
       content: { title: title || 'AfriMarket', body: body || '', data: data || null, sound: 'default' },
       trigger: null,
     });

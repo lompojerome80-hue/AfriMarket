@@ -34,7 +34,6 @@ import { getCartCount } from './src/lib/cart';
 import { getCurrentUser, userKey } from './src/lib/auth';
 import { registerAccountForPush } from './src/lib/push';
 import { autoSync } from './src/lib/sync';
-import * as Notifications from 'expo-notifications';
 import { getSellerContractState } from './src/lib/contract';
 
 const Stack = createNativeStackNavigator();
@@ -256,16 +255,27 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const sub = Notifications.addNotificationResponseReceivedListener((resp) => {
-      const content = resp && resp.notification && resp.notification.request && resp.notification.request.content;
-      const data = content && content.data;
-      if (!data || !navigationRef.isReady()) return;
+    let sub = null;
+    let mounted = true;
+    (async () => {
       try {
-        if (data.slug) navigationRef.navigate('BoutiqueDetail', { slug: data.slug });
-        else if (data.threadId) navigationRef.navigate('Thread', { threadId: data.threadId });
+        const mod = await import('expo-notifications');
+        if (!mounted) return;
+        sub = mod.addNotificationResponseReceivedListener((resp) => {
+          const content = resp && resp.notification && resp.notification.request && resp.notification.request.content;
+          const data = content && content.data;
+          if (!data || !navigationRef.isReady()) return;
+          try {
+            if (data.slug) navigationRef.navigate('BoutiqueDetail', { slug: data.slug });
+            else if (data.threadId) navigationRef.navigate('Thread', { threadId: data.threadId });
+          } catch {}
+        });
       } catch {}
-    });
-    return () => sub.remove();
+    })();
+    return () => {
+      mounted = false;
+      if (sub && sub.remove) sub.remove();
+    };
   }, []);
 
   if (!ready) {

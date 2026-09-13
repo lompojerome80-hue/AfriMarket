@@ -22,7 +22,7 @@ export const PAYMENT_MODE = {
  * - null : déduit automatiquement du host Metro (mode LAN développeur).
  * - sinon : URL fixe (ex: https://afrimarket-server.onrender.com) pour la prod.
  */
-const PAYMENT_SERVER_URL = null;
+const PAYMENT_SERVER_URL = 'https://season-pricing-serves-regarding.trycloudflare.com';
 
 function getServerBase() {
   if (PAYMENT_SERVER_URL) return PAYMENT_SERVER_URL;
