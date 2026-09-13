@@ -13,8 +13,14 @@ export default function SeasonalSplash({ trigger, onAdPress, suppressTrigger }) 
   const opacity = useRef(new Animated.Value(0)).current;
   const timer = useRef(null);
   const countedRef = useRef(null);
+  const shownKeyRef = useRef(null);
+  const lastShownAtRef = useRef(0);
 
   const showSplash = () => {
+    if (visible) return;
+    const now = Date.now();
+    if (now - lastShownAtRef.current < 300000) return;
+    lastShownAtRef.current = now;
     Promise.all([getCampaignsLocal(), getCurrentUser(), getTrackingProfile()])
       .then(([cams, user, profile]) => {
         const c = pickCampaignForUser(cams, user, profile);
@@ -46,6 +52,13 @@ export default function SeasonalSplash({ trigger, onAdPress, suppressTrigger }) 
     if (firstRun.current) {
       firstRun.current = false;
       lastTrigger.current = trigger;
+      shownKeyRef.current = trigger && trigger.key ? trigger.key : null;
+      return;
+    }
+    const nowKey = trigger && trigger.key ? trigger.key : null;
+    const sameKey = nowKey !== null && nowKey === shownKeyRef.current;
+    if (sameKey) {
+      lastTrigger.current = trigger;
       return;
     }
     if (trigger !== lastTrigger.current) {
@@ -54,6 +67,7 @@ export default function SeasonalSplash({ trigger, onAdPress, suppressTrigger }) 
         suppressTrigger.current = false;
         return;
       }
+      if (nowKey !== null) shownKeyRef.current = nowKey;
       showSplash();
     }
   }, [trigger]);

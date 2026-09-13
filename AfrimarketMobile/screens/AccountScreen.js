@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, Image,
 } from 'react-native';
@@ -61,11 +61,15 @@ export default function AccountScreen({ onUserChange }) {
   const [dRecto, setDRecto] = useState(null);
   const [dVerso, setDVerso] = useState(null);
   const [lang, setLangState] = useState(getLang());
+  const lastUserKeyRef = useRef(null);
 
   const applyUser = useCallback(
     (u) => {
+      const ukey = u ? userKey(u) : null;
+      const changed = ukey !== lastUserKeyRef.current;
+      lastUserKeyRef.current = ukey;
       setUser(u);
-      if (onUserChange) onUserChange(u);
+      if (changed && onUserChange) onUserChange(u);
     },
     [onUserChange]
   );
