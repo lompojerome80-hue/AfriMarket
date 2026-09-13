@@ -161,12 +161,13 @@ function MainTabs({ user: userProp, onUserChange }) {
       )}
       <Tab.Screen
         name="Compte"
-        component={(props) => <AccountScreen {...props} onUserChange={onUserChange} />}
         options={{
           tabBarLabel: 'Compte',
           tabBarIcon: ({ color }) => <TabIcon emoji="👤" color={color} />,
         }}
-      />
+      >
+        {(props) => <AccountScreen {...props} onUserChange={onUserChange} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
