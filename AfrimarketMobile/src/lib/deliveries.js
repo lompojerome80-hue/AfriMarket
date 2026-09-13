@@ -57,7 +57,8 @@ export async function createCourse({ seller, titre, destination, prixFcfa, order
 
   const distanceKm = haversineKm({ lat: sellerLat, lng: sellerLng }, { lat: buyerLat, lng: buyerLng });
   const prixAuto = deliveryPrice(distanceKm);
-  const prixFinal = Math.max(0, parseInt(prixFcfa, 10) || 0) || prixAuto || 0;
+  const prixManuel = Math.max(0, parseInt(prixFcfa, 10) || 0);
+  const prixFinal = prixAuto || prixManuel || 0;
 
   const course = {
     id: fid('csr_'),

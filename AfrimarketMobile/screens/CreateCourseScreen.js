@@ -55,7 +55,7 @@ export default function CreateCourseScreen() {
         const price = deliveryPrice(km);
         setDistanceKm(km);
         setAutoPrice(price);
-        if (price) setPrixFcfa((prev) => prev || String(price));
+        setPrixFcfa(price ? String(price) : '');
       }
       setLoading(false);
     })();
@@ -64,8 +64,13 @@ export default function CreateCourseScreen() {
   const handleCreate = async () => {
     if (!titre.trim()) { Alert.alert('Erreur', 'Intitulé de la course requis.'); return; }
     if (!destination.trim()) { Alert.alert('Erreur', 'Destination requise.'); return; }
-    const prix = parseInt(prixFcfa.replace(/\s/g, ''), 10);
-    if (!prix || prix <= 0) { Alert.alert('Erreur', 'Prix de la course invalide.'); return; }
+    if (!autoPrice) {
+      Alert.alert(
+        'Prix indisponible',
+        'Le prix se calcule automatiquement d\'après la distance. Autorisez la localisation et assurez-vous que l\'acheteur a partagé sa position, puis réessayez.'
+      );
+      return;
+    }
 
     const user = await getCurrentUser();
     setSaving(true);
@@ -74,7 +79,7 @@ export default function CreateCourseScreen() {
         seller: user,
         titre: titre.trim(),
         destination: destination.trim(),
-        prixFcfa: prix,
+        prixFcfa: autoPrice,
         orderId: orderId || null,
         clientNote: note.trim(),
         sellerLocation: sellerPos,
@@ -154,7 +159,8 @@ export default function CreateCourseScreen() {
             )}
             {locWarn && !sellerPos && (
               <Text style={styles.locWarn}>
-                ⚠️ Position impossible à obtenir (permission GPS refusée ou indisponible). Prix saisi manuellement.
+                ⚠️ Position impossible à obtenir (permission GPS refusée ou indisponible) : le prix ne peut pas être
+                calculé automatiquement.
               </Text>
             )}
           </View>
@@ -164,16 +170,21 @@ export default function CreateCourseScreen() {
             style={styles.input}
             value={prixFcfa}
             onChangeText={setPrixFcfa}
+            editable={false}
             placeholder="Ex : 2000"
             placeholderTextColor={COLORS.muted}
             keyboardType="numeric"
           />
+          <Text style={styles.priceLocked}>
+            🔒 Prix calculé automatiquement d'après la distance ({autoPrice ? fcfa(autoPrice) : 'non calculé'}) — il
+            n'est pas modifiable.
+          </Text>
           <Text style={styles.commissionHint}>
             Commission AfriMarket : 10 % du livreur sur cette course ({prixFcfa ? fcfa(Math.round((parseInt(prixFcfa.replace(/\s/g, ''), 10) || 0) * 0.1)) : '—'}).
           </Text>
           <Text style={[styles.commissionHint, { marginTop: 6, color: COLORS.muted }]}>
-            ℹ️ Prix suggéré automatiquement d'après la distance ({autoPrice ? fcfa(autoPrice) : 'non calculé'}). Cette
-            course sera visible uniquement par les livreurs dont le dossier a été vérifié par l'administrateur.
+            ℹ️ Règle : 1000 FCFA minimum, +1000 FCFA par tranche de 10 km. Cette course sera visible uniquement par les
+            livreurs dont le dossier a été vérifié par l'administrateur.
           </Text>
 
           <Text style={styles.label}>Note au livreur (optionnel)</Text>
@@ -274,6 +285,12 @@ const styles = StyleSheet.create({
   },
   textArea: { minHeight: 90, paddingTop: 12 },
   commissionHint: { fontSize: 12, color: COLORS.muted, marginTop: 8 },
+  priceLocked: {
+    fontSize: 12,
+    color: COLORS.piment,
+    marginTop: 8,
+    fontWeight: '700',
+  },
   locCard: {
     backgroundColor: COLORS.paper,
     borderWidth: 1,
