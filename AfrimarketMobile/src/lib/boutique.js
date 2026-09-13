@@ -202,6 +202,22 @@ async function _getLocal(slug) {
   return { ...shop, creeLe: shop.created_at, proprietaireKey: await getOwner(slug), produits, avis };
 }
 
+export async function getNoteBoutique(slug) {
+  if (await isSupabaseAvailable()) {
+    try {
+      const { data: shop } = await supabase.from('boutiques').select('id').eq('slug', slug).maybeSingle();
+      if (shop) {
+        const { data: rows } = await supabase.from('avis').select('note').eq('boutique_id', shop.id);
+        const notes = (rows || []).map((r) => Number(r.note));
+        return { moyenne: notes.length ? notes.reduce((s, n) => s + n, 0) / notes.length : 0, nb: notes.length };
+      }
+    } catch { _sbOk = false; }
+  }
+  const avis = await lsGet('afrimarket_avis_' + slug);
+  const notes = avis.map((a) => Number(a.note));
+  return { moyenne: notes.length ? notes.reduce((s, n) => s + n, 0) / notes.length : 0, nb: notes.length };
+}
+
 export async function addAvis(slug, avisData) {
   const userKeyVal = avisData.userKey || null;
   const ownerKey = await getOwner(slug);

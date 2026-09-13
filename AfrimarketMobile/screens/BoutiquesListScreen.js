@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppBar from '../src/components/AppBar';
 import { getCurrentUser } from '../src/lib/auth';
 import { getFeatured } from '../src/lib/admin';
+import { getNoteBoutique } from '../src/lib/boutique';
 import { COLORS, SHADOWS } from '../src/constants/theme';
 
 const slugify = (n) => n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -13,11 +14,12 @@ const isFeatured = (b, slugs) => {
   return slugs.includes(s) || slugs.includes(b.slug);
 };
 
-const BoutiqueCard = ({ boutique, onPress }) => {
+const BoutiqueCard = ({ boutique, index, onPress, showRank }) => {
   const nom = boutique.nom || boutique.name || 'Boutique';
   const produits = boutique.produits || boutique.products || [];
   const ville = boutique.ville || boutique.location || '';
   const featur = !!boutique.featured;
+  const rf = showRank ? { 1: '🥇', 2: '🥈', 3: '🥉' }[index] : null;
   return (
     <TouchableOpacity style={[styles.card, featur && styles.cardFeatured]} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.avatar}>
@@ -29,6 +31,11 @@ const BoutiqueCard = ({ boutique, onPress }) => {
       </View>
       <View style={styles.cardInfo}>
         <View style={styles.nameRow}>
+          {rf ? (
+            <Text style={styles.rankBadge}>{rf}</Text>
+          ) : showRank ? (
+            <Text style={styles.rankNum}>#{index}</Text>
+          ) : null}
           <Text style={styles.cardName} numberOfLines={1}>{nom}</Text>
           {featur ? (
             <View style={styles.featuredBadge}>
@@ -42,6 +49,16 @@ const BoutiqueCard = ({ boutique, onPress }) => {
         {ville ? (
           <Text style={styles.cardLoc}>📍 {ville}</Text>
         ) : null}
+        <View style={styles.ratingRow}>
+          <Text style={styles.stars}>
+            {'★'.repeat(Math.max(0, Math.min(5, Math.round(boutique.note || 0))))}
+            {'☆'.repeat(Math.max(0, 5 - Math.min(5, Math.round(boutique.note || 0))))}
+          </Text>
+          <Text style={styles.ratingText}>
+            {(boutique.note || 0).toFixed(1)}
+            <Text style={styles.ratingCount}> ({boutique.nbAvis || 0} avis)</Text>
+          </Text>
+        </View>
       </View>
       <View style={styles.voirBtn}>
         <Text style={styles.voirBtnText}>Voir</Text>
@@ -80,7 +97,14 @@ export default function BoutiquesListScreen() {
             const produits = JSON.parse(await AsyncStorage.getItem(key)) || [];
             enriched.push({ ...b, produits, count: produits.length, featured: isFeatured(b, slugs) });
           }
-          enriched.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+          for (const item of enriched) {
+            try {
+              const { moyenne, nb } = await getNoteBoutique(item.slug || slugify(item.nom || item.name || ''));
+              item.note = moyenne;
+              item.nbAvis = nb;
+            } catch { item.note = 0; item.nbAvis = 0; }
+          }
+          enriched.sort((a, b) => (b.note || 0) - (a.note || 0) || (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
           if (mounted) setBoutiques(enriched);
         } catch {
           if (mounted) setBoutiques([]);
@@ -97,8 +121,10 @@ export default function BoutiquesListScreen() {
     navigation.navigate('BoutiqueDetail', { slug });
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item, index }) => (
     <BoutiqueCard
+      index={index + 1}
+      showRank={!query.trim()}
       boutique={item}
       onPress={() => handlePress(item.slug || slugify(item.nom || item.name || ''))}
     />
@@ -267,6 +293,20 @@ const styles = StyleSheet.create({
     paddingVertical: 8, paddingHorizontal: 18,
   },
   voirBtnText: { color: COLORS.paper, fontWeight: '700', fontSize: 13 },
+  rankBadge: {
+    minWidth: 26, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.gold, borderRadius: 8,
+    paddingVertical: 3, paddingHorizontal: 7, marginRight: 6,
+  },
+  rankNum: {
+    fontWeight: '800', fontSize: 12, color: COLORS.inkSoft,
+    backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 6,
+    paddingVertical: 2, paddingHorizontal: 7, marginRight: 6, overflow: 'hidden',
+  },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
+  stars: { fontSize: 13, color: COLORS.sun, letterSpacing: 1 },
+  ratingText: { fontSize: 13, fontWeight: '700', color: COLORS.ink, marginLeft: 4 },
+  ratingCount: { fontSize: 11, color: COLORS.muted, marginLeft: 3 },
   emptyContainer: {
     flex: 1, justifyContent: 'center', alignItems: 'center',
     paddingHorizontal: 40,
