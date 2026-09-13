@@ -30,7 +30,7 @@ const docStatusLabel = {
   rejete: 'Dossier rejeté',
 };
 
-export default function AccountScreen() {
+export default function AccountScreen({ onUserChange }) {
   const navigation = useNavigation();
   const [user, setUser] = useState(null);
   const [mode, setMode] = useState('register'); // register | login | otp
@@ -62,6 +62,14 @@ export default function AccountScreen() {
   const [dVerso, setDVerso] = useState(null);
   const [lang, setLangState] = useState(getLang());
 
+  const applyUser = useCallback(
+    (u) => {
+      setUser(u);
+      if (onUserChange) onUserChange(u);
+    },
+    [onUserChange]
+  );
+
   const refresh = useCallback(async (u) => {
     if (!u) return;
     const key = userKey(u);
@@ -89,7 +97,7 @@ export default function AccountScreen() {
     useCallback(() => {
       (async () => {
         const u = await getCurrentUser();
-        setUser(u);
+        applyUser(u);
         await initI18n();
         setLangState(getLang());
         if (u) refresh(u);
@@ -140,7 +148,7 @@ export default function AccountScreen() {
       Alert.alert('Inscription impossible', res.error);
       return;
     }
-    setUser(res.user);
+    applyUser(res.user);
     refresh(res.user);
   };
 
@@ -156,7 +164,7 @@ export default function AccountScreen() {
       Alert.alert('Connexion impossible', res.error);
       return;
     }
-    setUser(res.user);
+    applyUser(res.user);
     refresh(res.user);
   };
 
@@ -208,25 +216,25 @@ export default function AccountScreen() {
       Alert.alert('Erreur', res.error);
       return;
     }
-    setUser(res.user);
+    applyUser(res.user);
     refresh(res.user);
   };
 
   const handleGoogle = async () => {
     const res = await loginGoogleSimulated(role);
-    setUser(res.user);
+    applyUser(res.user);
     refresh(res.user);
   };
 
   const handleAdminDemo = async () => {
     const res = await loginAdminSimulated();
-    setUser(res.user);
+    applyUser(res.user);
     refresh(res.user);
   };
 
   const handleLogout = async () => {
     await logout();
-    setUser(null);
+    applyUser(null);
     setName('');
     setPhone('');
     setPassword('');
@@ -287,12 +295,12 @@ export default function AccountScreen() {
     });
     await pushNotification('admin', {
       title: 'Dossier à vérifier',
-      body: `${u.name} a soumis son dossier livreur (protection ` + `réel secteur portfolio` + `).`,
+      body: `${u.name} a soumis son dossier livreur.`,
       type: 'dossier',
     });
-    setUser(u);
+    applyUser(u);
     setDossierOpen(false);
-    Alert.alert('Dossier soumis ✓', 'En attente de vérification par l’administrateur.');
+    Alert.alert('Dossier soumis ✓', 'En attente de vérification par l\'administrateur.');
   };
 
   const handleSettle = async () => {

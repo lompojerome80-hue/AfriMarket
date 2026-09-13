@@ -47,7 +47,7 @@ export default function LivraisonsScreen({ route }) {
     const u = await getCurrentUser();
     setUser(u);
     if (u) {
-      setOpen(await getOpenCourses());
+      setOpen(await getOpenCourses(u));
       setMine(await getCoursesForLivreur(u));
       setDues(await getLivreurDues(u));
       setCompleted(await getLivreurCompletedCount(u));
@@ -86,6 +86,8 @@ export default function LivraisonsScreen({ route }) {
   const alertResult = (res, successMsg) => {
     if (res.ok) {
       Alert.alert('Succès ✓', successMsg);
+    } else if (res.error === 'deja') {
+      Alert.alert('Une course en cours', res.message);
     } else if (res.error === 'bloque') {
       Alert.alert('Compte bloqué', res.message);
     } else if (res.error === 'dossier') {

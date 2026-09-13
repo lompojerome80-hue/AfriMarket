@@ -72,8 +72,11 @@ function CartTabIcon({ color }) {
   return <TabIcon emoji="🛒" color={color} badge={count} />;
 }
 
-function MainTabs({ user: userProp }) {
+function MainTabs({ user: userProp, onUserChange }) {
   const [role, setRole] = useState(() => (userProp && userProp.role ? userProp.role : null));
+  useEffect(() => {
+    if (userProp && userProp.role) setRole(userProp.role);
+  }, [userProp]);
   useFocusEffect(
     useCallback(() => {
       let active = true;
@@ -158,7 +161,7 @@ function MainTabs({ user: userProp }) {
       )}
       <Tab.Screen
         name="Compte"
-        component={AccountScreen}
+        component={(props) => <AccountScreen {...props} onUserChange={onUserChange} />}
         options={{
           tabBarLabel: 'Compte',
           tabBarIcon: ({ color }) => <TabIcon emoji="👤" color={color} />,
@@ -172,6 +175,7 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState(null);
   const [contractOpenedFor, setContractOpenedFor] = useState(null);
+  const onUserChange = useCallback((u) => setUser(u), []);
   const pendingAdRef = useRef(null);
   const triesAdRef = useRef(0);
   const userAdRef = useRef(null);
@@ -317,7 +321,7 @@ export default function App() {
         ) : (
           <>
             <Stack.Screen name="MainTabs">
-              {(props) => <MainTabs {...props} userProp={user} />}
+              {(props) => <MainTabs {...props} userProp={user} onUserChange={onUserChange} />}
             </Stack.Screen>
             <Stack.Screen name="BoutiqueDetail" component={BoutiqueScreen} />
             <Stack.Screen name="Search" component={SearchScreen} />

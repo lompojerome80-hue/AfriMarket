@@ -98,7 +98,13 @@ export async function createCourse({ seller, titre, destination, prixFcfa, order
 }
 
 /* ─── Lecture ─── */
-export async function getOpenCourses() {
+export async function hasActiveCourse(livreur) {
+  const key = userKey(livreur);
+  return (await getAllCourses()).some((c) => c.livreurKey === key && (c.status === 'acceptee' || c.status === 'recupere'));
+}
+
+export async function getOpenCourses(livreur) {
+  if (livreur && (await hasActiveCourse(livreur))) return [];
   return (await getAllCourses()).filter((c) => c.status === 'ouverte');
 }
 
@@ -246,6 +252,9 @@ export async function acceptCourse(courseId, livreur) {
   const dues = await getLivreurDues(livreur);
   if (dues.blocked) {
     return { ok: false, error: 'bloque', message: 'Compte bloqué : réglez votre dû pour continuer.' };
+  }
+  if (await hasActiveCourse(livreur)) {
+    return { ok: false, error: 'deja', message: 'Vous avez déjà une course en cours. Terminez-la avant d’en accepter une nouvelle.' };
   }
   const course = await getCourseById(courseId);
   if (!course || course.status !== 'ouverte') {
