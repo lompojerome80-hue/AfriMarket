@@ -1,5 +1,5 @@
 diff --git a/node_modules/expo-notifications/build/DevicePushTokenAutoRegistration.fx.js b/node_modules/expo-notifications/build/DevicePushTokenAutoRegistration.fx.js
-index 85cd97c..c30ef11 100644
+index 85cd97c..598c8a2 100644
 --- a/node_modules/expo-notifications/build/DevicePushTokenAutoRegistration.fx.js
 +++ b/node_modules/expo-notifications/build/DevicePushTokenAutoRegistration.fx.js
 @@ -1,5 +1,6 @@
@@ -17,7 +17,7 @@ index 85cd97c..c30ef11 100644
 -if (ServerRegistrationModule.getRegistrationInfoAsync) {
 +if (isRunningInExpoGo() && Platform.OS === 'android') {
 +    // Registering the module-scope push token listener would throw and make the import fatal.
-+    console.warn('[expo-notifications] Push notifications (remote notifications) are unavailable in Expo Go on Android since SDK 53. Local notifications remain available. Use a development build for push notifications: https://docs.expo.dev/develop/development-builds/introduction/');
++    // Remote push is unavailable in Expo Go on Android since SDK 53; local notifications remain available.
 +}
 +else if (ServerRegistrationModule.getRegistrationInfoAsync) {
      // A global scope (to get all the updates) device push token
@@ -37,6 +37,21 @@ index 644a8bb..74e41b8 100644
 +export default module;
  //# sourceMappingURL=TopicSubscriptionModule.android.js.map
 \ No newline at end of file
+diff --git a/node_modules/expo-notifications/build/index.js b/node_modules/expo-notifications/build/index.js
+index 3167134..f1f2b1c 100644
+--- a/node_modules/expo-notifications/build/index.js
++++ b/node_modules/expo-notifications/build/index.js
+@@ -1,8 +1,9 @@
+ import { isRunningInExpoGo } from 'expo';
++import { Platform } from 'expo-modules-core';
+ function areWeTestingWithJest() {
+     return process.env.JEST_WORKER_ID !== undefined || process.env.NODE_ENV?.toLowerCase() === 'test';
+ }
+-if (isRunningInExpoGo() && !areWeTestingWithJest()) {
++if (isRunningInExpoGo() && !areWeTestingWithJest() && !(Platform.OS === 'android')) {
+     const message = '`expo-notifications` functionality is not fully supported in Expo Go:\n' +
+         'We recommend you instead use a development build to avoid limitations. Learn more: https://expo.fyi/dev-client.';
+     console.warn(message);
 diff --git a/node_modules/expo-notifications/build/warnOfExpoGoPushUsage.js b/node_modules/expo-notifications/build/warnOfExpoGoPushUsage.js
 index 8260405..f1892c3 100644
 --- a/node_modules/expo-notifications/build/warnOfExpoGoPushUsage.js

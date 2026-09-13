@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { PAYMENT_API_BASE } from '../services/paymentApi';
 
 const Notifications = {};
@@ -7,6 +8,18 @@ const TOKENS_KEY = 'afrimarket_push_tokens';
 
 let cachedToken = null;
 let channelReady = false;
+let cachedExpoGoAndroid = null;
+
+async function isExpoGoAndroid() {
+  if (cachedExpoGoAndroid !== null) return cachedExpoGoAndroid;
+  try {
+    const Expo = await import('expo');
+    cachedExpoGoAndroid = !!(Expo.isRunningInExpoGo && Expo.isRunningInExpoGo()) && Platform.OS === 'android';
+  } catch {
+    cachedExpoGoAndroid = false;
+  }
+  return cachedExpoGoAndroid;
+}
 
 let notificationsLoaded = false;
 async function loadNotifications() {
@@ -65,6 +78,9 @@ export async function ensurePushReady() {
     }
     if (!granted) return false;
     await ensureChannel();
+    if (await isExpoGoAndroid()) {
+      return true;
+    }
     if (!cachedToken) {
       try {
         cachedToken = (await N.getExpoPushTokenAsync()).data;

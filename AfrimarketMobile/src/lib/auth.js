@@ -413,6 +413,15 @@ export async function setDossierStatus(key, status) {
   if (!store[key]) return { ok: false, error: 'Dossier introuvable' };
   store[key].docStatus = status;
   await AsyncStorage.setItem(DOSSIERS_KEY, JSON.stringify(store));
+  const accounts = await getAccounts();
+  const aIdx = accounts.findIndex((a) => a.key === key);
+  if (aIdx >= 0 && accounts[aIdx].courierDossier) {
+    accounts[aIdx] = {
+      ...accounts[aIdx],
+      courierDossier: { ...accounts[aIdx].courierDossier, docStatus: status },
+    };
+    await saveAccounts(accounts);
+  }
   const user = await getCurrentUser();
   if (user && userKey(user) === key && user.courierDossier) {
     user.courierDossier.docStatus = status;

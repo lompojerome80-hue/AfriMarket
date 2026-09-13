@@ -204,11 +204,19 @@ export function useAdminScreen() {
     if (onOk) onOk();
   };
 
-  const handleDossierStatus = async (key, status) => {
+const handleDossierStatus = async (key, status) => {
     await setDossierStatus(key, status);
-    await audit('Dossier livreur', `${key} �  ${status}`);
+    await audit('Dossier livreur', `${key} -> ${status}`);
+    await pushNotification(key, {
+      title: status === 'verifie' ? 'Dossier vérifié ✓' : 'Dossier rejeté',
+      body:
+        status === 'verifie'
+          ? 'Félicitations ! Votre dossier livreur a été validé. Vous pouvez accepter des courses.'
+          : 'Votre dossier livreur a été rejeté. Soumettez de nouveaux documents pour reprendre les courses.',
+      type: 'info',
+    });
     await reload();
-    Alert.alert(status === 'verifie' ? 'Dossier vérifié �S' : 'Dossier rejeté', 'Le statut a été notifié au livreur.');
+    Alert.alert(status === 'verifie' ? 'Dossier vérifié ✓' : 'Dossier rejeté', 'Le statut a été notifié au livreur.');
   };
 
   const confirmRejectDossier = (key, name) => {

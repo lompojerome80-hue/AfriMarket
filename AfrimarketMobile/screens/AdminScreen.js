@@ -8,6 +8,7 @@ import { SECTIONS, fmtDate } from '../src/admin/meta';
 import { SEVERITIES } from '../src/lib/admin';
 import { ROLE_ADMIN } from '../src/lib/auth';
 import { useAdminScreen } from '../src/admin/useAdminScreen';
+import { AdminContext } from '../src/admin/AdminContext';
 import { styles } from '../src/admin/styles';
 import { SectionApercu } from '../src/admin/sections/overview';
 import { SectionDossiers, SectionReglements, SectionLitiges, SectionTickets } from '../src/admin/sections/treasury';
@@ -60,7 +61,8 @@ export default function AdminScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <AdminContext.Provider value={ctx}>
+      <View style={styles.container}>
       <AppBar
         title="Console admin 🔐"
         onBack={() => navigation.goBack()}
@@ -374,6 +376,7 @@ export default function AdminScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+      </View>
+    </AdminContext.Provider>
   );
 }

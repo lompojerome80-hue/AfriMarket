@@ -40,7 +40,6 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const navigationRef = createNavigationContainerRef();
 
-const __FIX_VERSION__ = 'FIX-2026-09-13-TEST-VISIBLE';
 console.log('BUNDLE_VERROU_Y4Z2_CHARGEPAR_L_APP');
 
 const C = {
@@ -73,8 +72,8 @@ function CartTabIcon({ color }) {
   return <TabIcon emoji="🛒" color={color} badge={count} />;
 }
 
-function MainTabs() {
-  const [role, setRole] = useState(null);
+function MainTabs({ user: userProp }) {
+  const [role, setRole] = useState(() => (userProp && userProp.role ? userProp.role : null));
   useFocusEffect(
     useCallback(() => {
       let active = true;
@@ -83,7 +82,7 @@ function MainTabs() {
         if (active) setRole(u?.role || null);
       })();
       return () => { active = false; };
-    }, [])
+    }, [userProp])
   );
 
   const courierOnly = role === 'Livreur';
@@ -292,9 +291,6 @@ export default function App() {
 
   return (
     <>
-      <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 99999, backgroundColor: '#00C853', paddingVertical: 30 }}>
-        <Text style={{ color: '#fff', fontWeight: 'bold', textAlign: 'center' }}>{__FIX_VERSION__}</Text>
-      </View>
       <NavigationContainer ref={navigationRef}>
       <StatusBar style="light" />
       <Stack.Navigator
@@ -320,7 +316,9 @@ export default function App() {
           </Stack.Screen>
         ) : (
           <>
-            <Stack.Screen name="MainTabs" component={MainTabs} />
+            <Stack.Screen name="MainTabs">
+              {(props) => <MainTabs {...props} userProp={user} />}
+            </Stack.Screen>
             <Stack.Screen name="BoutiqueDetail" component={BoutiqueScreen} />
             <Stack.Screen name="Search" component={SearchScreen} />
             <Stack.Screen name="CreateBoutique" component={CreateBoutiqueScreen} />

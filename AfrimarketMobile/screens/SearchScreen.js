@@ -7,7 +7,7 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import ProductCard from '../src/components/ProductCard';
 import AppBar from '../src/components/AppBar';
 import { addToCart } from '../src/lib/cart';
-import { getAllProducts } from '../src/lib/products';
+import { getAllProducts, productDiscount } from '../src/lib/products';
 import { CATEGORIES } from '../src/constants/categories';
 import { trackSearch } from '../src/lib/tracking';
 import { COLORS, SIZES, SHADOWS } from '../src/constants/theme';
@@ -20,6 +20,7 @@ export default function SearchScreen() {
 
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Tous');
+  const [rail, setRail] = useState(null);
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
@@ -36,14 +37,20 @@ export default function SearchScreen() {
     useCallback(() => {
       const cat = route.params?.category;
       if (cat) setCategory(cat);
+      setRail(route.params?.rail || null);
       getAllProducts()
         .then(setAllProducts)
         .finally(() => setLoading(false));
-    }, [route.params?.category])
+    }, [route.params?.category, route.params?.rail])
   );
 
   const q = normalize(query.trim());
-  const filtered = allProducts.filter((p) => {
+  const isRailMode = rail === 'promos' || rail === 'featured';
+  const base = rail === 'featured'
+    ? [...allProducts].sort((a, b) => (b.weeklySales || 0) - (a.weeklySales || 0) || (b.rating || 0) - (a.rating || 0))
+    : allProducts;
+  const filtered = base.filter((p) => {
+    if (rail === 'promos' && !productDiscount(p).has) return false;
     const matchesCat = category === 'Tous' || (p.category || 'Autre') === category;
     const haystack = normalize((p.title || p.name || '') + ' ' + (p.boutiqueName || '') + ' ' + (p.category || ''));
     const matchesQuery = !q || haystack.includes(q);
@@ -53,7 +60,7 @@ export default function SearchScreen() {
   return (
     <View style={styles.container}>
       <AppBar
-        title="Recherche"
+        title={rail === 'promos' ? 'Promotions du jour' : rail === 'featured' ? 'Produits en vedette' : 'Recherche'}
         onBack={() => navigation.goBack()}
         right={
           <TouchableOpacity
@@ -113,9 +120,11 @@ export default function SearchScreen() {
       {!query.trim() && !loading && (
         <View style={styles.hintRow}>
           <Text style={styles.hintText}>
-            {category === 'Tous'
-              ? `Parcourez les ${allProducts.length} produits disponibles`
-              : `${filtered.length} produit${filtered.length > 1 ? 's' : ''} dans « ${category} »`}
+            {isRailMode
+              ? `${filtered.length} produit${filtered.length > 1 ? 's' : ''} ${rail === 'promos' ? 'en promotion' : 'en vedette'}`
+              : category === 'Tous'
+                ? `Parcourez les ${allProducts.length} produits disponibles`
+                : `${filtered.length} produit${filtered.length > 1 ? 's' : ''} dans « ${category} »`}
           </Text>
         </View>
       )}

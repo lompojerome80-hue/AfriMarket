@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ProductCard from '../src/components/ProductCard';
 import AppBar from '../src/components/AppBar';
+import InfiniteMarquee from '../src/components/InfiniteMarquee';
 import { COLORS, SIZES, SHADOWS } from '../src/constants/theme';
 import { CATEGORIES } from '../src/constants/categories';
 import { addToCart } from '../src/lib/cart';
@@ -38,8 +39,6 @@ export default function HomeScreen() {
   const [homeSettings, setHomeSettings] = useState({});
   const [campaigns, setCampaigns] = useState([]);
   const [, forceLang] = useState(getLang());
-  const promosRef = React.useRef(null);
-  const promoPos = React.useRef(0);
 
   const loadHome = React.useCallback(async () => {
     const [prods, feat, bts, st, cams] = await Promise.all([
@@ -57,26 +56,6 @@ export default function HomeScreen() {
   }, []);
 
   React.useEffect(() => { loadHome(); }, [loadHome]);
-
-  const autoScrollPromos = () => {
-    const list = promosRef.current;
-    const count = promos.length;
-    if (!list || count === 0) return;
-    const step = width * 0.42 + 12;
-    const max = step * count - width;
-    promoPos.current += step;
-    if (promoPos.current >= max) {
-      promoPos.current = 0;
-      list.scrollToOffset({ offset: 0, animated: false });
-    } else {
-      list.scrollToOffset({ offset: promoPos.current, animated: true });
-    }
-  };
-
-  React.useEffect(() => {
-    const t = setInterval(autoScrollPromos, 2600);
-    return () => clearInterval(t);
-  }, [allProducts]);
 
   useFocusEffect(
     useCallback(() => {
@@ -135,50 +114,57 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        {/* ── Campagne saisonnière (administrée) ── */}
-        {campaigns.map((cam) => {
-          const body = (
-            <>
-              {cam.image ? (
-                <Image source={{ uri: cam.image }} style={styles.campHeroImg} resizeMode="cover" />
-              ) : (
-                <View style={styles.campHeroNoImg}>
-                  <Text style={styles.campHeroBigEmoji}>{cam.emoji}</Text>
-                </View>
-              )}
-              <View style={styles.campHeroOverlay}>
-                <View style={styles.campHeroBadge}>
-                  <Text style={styles.campHeroBadgeText}>{cam.emoji} {modeLabel(cam.mode)}</Text>
-                </View>
-                {cam.title ? (
-                  <Text style={styles.campHeroTitle}>{cam.title}</Text>
-                ) : null}
-                {cam.sub ? (
-                  <Text style={styles.campHeroSub} numberOfLines={2}>{cam.sub}</Text>
-                ) : null}
-                {cam.endAt ? (
-                  <Text style={styles.campHeroMeta}>⏳ Jusqu'au {cam.endAt}</Text>
-                ) : null}
-              </View>
-            </>
-          );
-          return cam.linkBoutique ? (
-            <TouchableOpacity
-              key={cam.id}
-              activeOpacity={0.9}
-              onPress={() => navigation.navigate('BoutiqueDetail', { slug: cam.linkBoutique })}
-            >
-              {body}
-              <View style={styles.campHeroShop}>
-                <Text style={styles.campHeroShopText}>🛍️ Voir la boutique</Text>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <View key={cam.id} style={styles.campHero}>
-              {body}
-            </View>
-          );
-        })}
+        {/* ── Pubs (marquee horizontal droite→gauche, n'occupe QUE la hauteur d'une pub) ── */}
+        {campaigns.length > 0 && (
+          <View style={styles.campaignMarqueeWrap}>
+            <InfiniteMarquee items={campaigns} height={210} itemWidth={width} gap={0} speed={42} direction="rtl">
+              {(cam) => {
+                const body = (
+                  <>
+                    {cam.image ? (
+                      <Image source={{ uri: cam.image }} style={styles.campHeroImg} resizeMode="cover" />
+                    ) : (
+                      <View style={styles.campHeroNoImg}>
+                        <Text style={styles.campHeroBigEmoji}>{cam.emoji}</Text>
+                      </View>
+                    )}
+                    <View style={styles.campHeroOverlay}>
+                      <View style={styles.campHeroBadge}>
+                        <Text style={styles.campHeroBadgeText}>{cam.emoji} {modeLabel(cam.mode)}</Text>
+                      </View>
+                      {cam.title ? (
+                        <Text style={styles.campHeroTitle}>{cam.title}</Text>
+                      ) : null}
+                      {cam.sub ? (
+                        <Text style={styles.campHeroSub} numberOfLines={2}>{cam.sub}</Text>
+                      ) : null}
+                      {cam.endAt ? (
+                        <Text style={styles.campHeroMeta}>⏳ Jusqu'au {cam.endAt}</Text>
+                      ) : null}
+                    </View>
+                  </>
+                );
+                return cam.linkBoutique ? (
+                  <TouchableOpacity
+                    key={cam.id}
+                    style={styles.campHero}
+                    activeOpacity={0.9}
+                    onPress={() => navigation.navigate('BoutiqueDetail', { slug: cam.linkBoutique })}
+                  >
+                    {body}
+                    <View style={styles.campHeroShop}>
+                      <Text style={styles.campHeroShopText}>🛍️ Voir la boutique</Text>
+                    </View>
+                  </TouchableOpacity>
+                ) : (
+                  <View key={cam.id} style={styles.campHero}>
+                    {body}
+                  </View>
+                );
+              }}
+            </InfiniteMarquee>
+          </View>
+        )}
 
         {/* ── Catégories ── */}
         <View style={styles.section}>
@@ -212,25 +198,20 @@ export default function HomeScreen() {
                 <Text style={styles.promoTag}>🔥</Text>
                 <Text style={styles.promoSectionTitle}>PROMOTIONS DU JOUR</Text>
               </View>
-              <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+              <TouchableOpacity onPress={() => navigation.navigate('Search', { rail: 'promos' })}>
                 <Text style={styles.seeAll}>Tout voir →</Text>
               </TouchableOpacity>
             </View>
             <Text style={styles.promoSectionSub}>Jusqu'à -{Math.max(...promos.map((p) => productDiscount(p).pct))}% de remise</Text>
-            <FlatList
-              ref={promosRef}
-              data={promos}
-              horizontal
-              style={{ height: 384 }}
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item, i) => String(item.id) + '_' + i}
-              contentContainerStyle={styles.productsList}
-              renderItem={({ item }) => (
-                <View style={styles.productWrapper}>
-                  <ProductCard product={item} onAddToCart={() => handleAddToCart(item)} onOpen={handleOpenProduct} />
-                </View>
-              )}
-            />
+            <View style={{ overflow: 'hidden' }}>
+              <InfiniteMarquee items={promos} height={384} itemWidth={width * 0.42 + 12} gap={0} speed={60} direction="ltr">
+                {(item) => (
+                  <View style={styles.productWrapper}>
+                    <ProductCard product={item} onAddToCart={() => handleAddToCart(item)} onOpen={handleOpenProduct} />
+                  </View>
+                )}
+              </InfiniteMarquee>
+            </View>
           </View>
         )}
 
@@ -269,7 +250,7 @@ export default function HomeScreen() {
               <Text style={styles.sectionHeadTitle}>Produits en vedette</Text>
               <Text style={styles.sectionHeadSub}>🔥 Les plus commandés de la semaine</Text>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+            <TouchableOpacity onPress={() => navigation.navigate('Search', { rail: 'featured' })}>
               <Text style={styles.seeAll}>Tout voir →</Text>
             </TouchableOpacity>
           </View>
@@ -465,9 +446,10 @@ const styles = StyleSheet.create({
   homeMsgText: { flex: 1, fontSize: 13, fontWeight: '700', color: COLORS.ink, lineHeight: 18 },
 
   /* Campagne saisonnière */
-  campHero: {
-    marginHorizontal: 16,
+  campaignMarqueeWrap: {
     marginTop: 12,
+  },
+  campHero: {
     borderRadius: 20,
     overflow: 'hidden',
     ...SHADOWS.md,
