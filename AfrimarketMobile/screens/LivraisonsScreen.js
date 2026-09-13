@@ -392,9 +392,11 @@ export default function LivraisonsScreen({ route }) {
               style={styles.codeInput}
               value={codeInput}
               onChangeText={setCodeInput}
-              keyboardType="number-pad"
-              maxLength={6}
-              placeholder="1234"
+              keyboardType="default"
+              autoCapitalize="characters"
+              autoCorrect={false}
+              maxLength={4}
+              placeholder="A4B2"
               placeholderTextColor={COLORS.mutedSoft}
             />
             <View style={styles.modalBtnRow}>
