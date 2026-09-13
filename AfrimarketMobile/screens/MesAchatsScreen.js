@@ -10,6 +10,7 @@ import { getCurrentUser, userKey } from '../src/lib/auth';
 import { ensureThread } from '../src/lib/messaging';
 import AppBar from '../src/components/AppBar';
 import EmptyState from '../src/components/EmptyState';
+import QrDisplay from '../src/components/QrDisplay';
 import { COLORS, SHADOWS } from '../src/constants/theme';
 
 export default function MesAchatsScreen() {
@@ -107,7 +108,8 @@ export default function MesAchatsScreen() {
 
                 {order.deliveryCode && (
                   <View style={styles.codeChip}>
-                    <Text style={styles.codeLabel}>Code livraison</Text>
+                    <Text style={styles.codeLabel}>Code livraison — à présenter au livreur</Text>
+                    <QrDisplay value={order.deliveryCode} size={150} />
                     <Text style={styles.codeValue}>{order.deliveryCode}</Text>
                   </View>
                 )}

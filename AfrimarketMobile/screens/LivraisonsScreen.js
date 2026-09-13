@@ -127,11 +127,14 @@ export default function LivraisonsScreen({ route }) {
     setCodeInput('');
     if (res.ok) {
       if (mode === 'pickup') {
-        Alert.alert('Colis récupéré ✓', 'Le code de livraison vous a été communiqué. À la remise, saisissez le code donné par le client.');
+        Alert.alert('Colis récupéré ✓', 'À la remise, l\'acheteur vous communiquera le code de livraison : saisissez-le ou scannez-le.');
       } else {
         Alert.alert(
           'Livraison terminée ✓',
           `Vous encaissez ${fcfa(res.course.prixFcfa)} en espèces. ` +
+            (res.course.fondsLiberes
+              ? 'Les fonds de la commande ont été libérés automatiquement au vendeur. '
+              : '') +
             (res.freeCourse
               ? `🎁 Course ${res.course.freeCourseIndex}/${COURSES_FREE} offerte : commission ${fcfa(res.commission)} non due.`
               : `Commission AfriMarket : ${fcfa(res.commission)} ajoutée à votre dû — à régler avant 0h.`)
@@ -241,12 +244,12 @@ export default function LivraisonsScreen({ route }) {
 
         {item.status === 'acceptee' && (
           <Text style={styles.courseHint}>
-            Code de livraison (à la remise) : <Text style={styles.courseCode}>{item.deliveryCode}</Text>
+            Colis récupéré : le code de livraison sera communiqué par le client à la remise.
           </Text>
         )}
         {item.status === 'recupere' && (
           <Text style={styles.courseHint}>
-            Demandez le code de livraison au client.
+            Demandez le code de livraison à l'acheteur et saisissez-le ou scannez-le à la remise.
           </Text>
         )}
         {item.status === 'livree' && (

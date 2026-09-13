@@ -233,6 +233,33 @@ export async function confirmReception(orderId) {
   return { ok: true, paiement: p };
 }
 
+export async function releaseFundsOnDelivery(orderId) {
+  if (!orderId) return { ok: false, error: 'Commande introuvable' };
+  const order = await getOrderById(orderId);
+  if (!order) return { ok: false, error: 'Commande introuvable' };
+  if (order.status !== 'livree') {
+    return { ok: false, error: 'La commande doit être livrée avant de libérer les fonds.' };
+  }
+  const list = await getPayments();
+  const p = list.find((x) => x.orderId === orderId);
+  if (!p || p.status !== 'paye') return { ok: false, error: 'Fonds indisponibles' };
+  p.status = 'confirme';
+  p.history.push({ at: new Date().toISOString(), ev: 'livrée — code validé par le livreur, fonds libérés au vendeur' });
+  await savePayments(list);
+  await applyRevenusPaiement(p);
+  await pushNotification(p.sellerKey, {
+    title: 'Fonds libérés',
+    body: `La commande ${orderId} a été livrée (code validé). Fonds disponibles.`,
+    type: 'escrow',
+  });
+  await pushNotification(p.buyerKey, {
+    title: 'Commande livrée',
+    body: `Votre commande ${orderId} a été livrée. Les fonds ont été libérés au vendeur.`,
+    type: 'escrow',
+  });
+  return { ok: true, paiement: p };
+}
+
 export async function openDispute(orderId, byKey, reason) {
   const list = await getPayments();
   const p = list.find((x) => x.orderId === orderId);

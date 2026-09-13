@@ -4,6 +4,7 @@ import { patchOrder, markOrderCourseComplete, getOrderById } from './orders';
 import { pushNotification } from './notifications';
 import { haversineKm, deliveryPrice } from './location';
 import { getSettlementAccount } from './admin';
+import { releaseFundsOnDelivery } from './payments';
 import fid, { randCode } from './fid';
 
 export const COMMISSION_PCT = 0.1;
@@ -351,6 +352,11 @@ export async function completeCourse(courseId, code, livreur) {
   }
   if (course.orderId) {
     await markOrderCourseComplete(course.orderId, course.id);
+    const p = await releaseFundsOnDelivery(course.orderId);
+    if (p.ok && p.paiement) {
+      course.fondsLiberes = true;
+      await saveCourse(course);
+    }
   }
   return { ok: true, course, commission, freeCourse };
 }
