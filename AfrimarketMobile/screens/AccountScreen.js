@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, Image,
+  View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, Image, Share,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { boutiqueExists } from '../src/lib/boutique';
@@ -234,6 +235,27 @@ export default function AccountScreen({ onUserChange }) {
     const res = await loginAdminSimulated();
     applyUser(res.user);
     refresh(res.user);
+  };
+
+  const handleExportData = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const dump = {};
+      if (keys.length) {
+        const pairs = await AsyncStorage.multiGet(keys);
+        (pairs || []).forEach(([k, v]) => { try { dump[k] = JSON.parse(v); } catch { dump[k] = v; } });
+      }
+      const payload = JSON.stringify({
+        app: 'AfriMarket', version: 1, exportedAt: new Date().toISOString(), data: dump,
+      });
+      Alert.alert('💾 Sauvegarde prête', `${Math.round(payload.length / 1024)} Ko de données (comptes, boutiques, commandes...). Choisissez un mode :`, [
+        { text: 'Annuler', style: 'cancel' },
+        { text: '📤 Envoyer', onPress: () => Share.share({ message: payload }) },
+        { text: '📋 Aperçu', onPress: () => Alert.alert('Aperçu', payload.slice(0, 900) + '...') },
+      ]);
+    } catch (e) {
+      Alert.alert('Export impossible', e.message);
+    }
   };
 
   const handleLogout = async () => {
@@ -686,6 +708,10 @@ export default function AccountScreen({ onUserChange }) {
             </TouchableOpacity>
           )}
         </View>
+
+        <TouchableOpacity style={styles.actionBtn} onPress={handleExportData}>
+          <Text style={styles.actionBtnText}>💾 Sauvegarder mes données (JSON)</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Text style={styles.logoutBtnText}>{t('se_deconnecter')}</Text>

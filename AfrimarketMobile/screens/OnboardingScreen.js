@@ -5,7 +5,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import {
   registerUser, loginUser, findAccount, resetPassword, sendWhatsappOtp, verifyWhatsappOtp,
-  ROLES, validatePassword,
+  ROLES, validatePassword, loginAdminSimulated,
 } from '../src/lib/auth';
 import { COLORS } from '../src/constants/theme';
 
@@ -101,6 +101,12 @@ export default function OnboardingScreen({ onLoggedIn }) {
     });
     setBusy(false);
     if (!res.ok) { Alert.alert('Inscription impossible', res.error); return; }
+    onLoggedIn(res.user);
+  };
+
+  const handleAdminDemo = async () => {
+    const res = await loginAdminSimulated();
+    if (!res.ok) { Alert.alert('Connexion impossible', res.error); return; }
     onLoggedIn(res.user);
   };
 
@@ -326,6 +332,14 @@ export default function OnboardingScreen({ onLoggedIn }) {
                   {loginMode ? '← Pas encore de compte ? Créer un compte' : 'Déjà un compte ? Se connecter'}
                 </Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.adminDemoBtn}
+                onPress={handleAdminDemo}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.adminDemoBtnText}>Console admin (démo)</Text>
+              </TouchableOpacity>
             </>
           )}
         </ScrollView>
@@ -411,4 +425,14 @@ const styles = StyleSheet.create({
   submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   switchBtn: { alignItems: 'center', marginTop: 18, paddingVertical: 8 },
   switchBtnText: { color: '#9C99B6', fontSize: 13, fontWeight: '600' },
+  adminDemoBtn: {
+    borderRadius: 100,
+    borderWidth: 1.5,
+    borderColor: '#27B546',
+    backgroundColor: 'transparent',
+    paddingVertical: 13,
+    alignItems: 'center',
+    marginTop: 14,
+  },
+  adminDemoBtnText: { color: '#27B546', fontSize: 13, fontWeight: '800' },
 });
