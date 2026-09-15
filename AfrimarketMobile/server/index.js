@@ -317,6 +317,15 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true, processed: vr.processed });
     }
 
+    if (req.method === 'POST' && url.pathname === '/api/account/delete') {
+      const h = syncHeaders(req);
+      if (!syncStore.authAccount(h.accountKey, h.secret)) {
+        return json(res, 401, { ok: false, error: 'Compte ou secret invalide' });
+      }
+      const r = syncStore.deleteAccountData(h.accountKey);
+      return json(res, 200, { ok: !!(r && r.ok), buckets: (r && (r.buckets !== undefined ? r.buckets : r.buckets) ) || 0, error: (r && !r.ok) ? 'Compte introuvable' : undefined });
+    }
+
     return notFound(req, res);
   } catch (e) {
     console.error('[error]', e.message);

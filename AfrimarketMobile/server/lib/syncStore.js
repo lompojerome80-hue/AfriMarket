@@ -27,7 +27,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const FILE = path.join(__dirname, '..', 'data', 'sync.json');
+const FILE = process.env.AFRIMARKET_SYNC_FILE || path.join(__dirname, '..', 'data', 'sync.json');
 
 function hashSecret(secret, salt) {
   return crypto.createHash('sha256').update(`${salt}:${secret}`).digest('hex');
@@ -126,6 +126,28 @@ function pull(bucket, since) {
   };
 }
 
+/**
+ * Supprime RÉELLEMENT un compte côté serveur : purge le registre d'accounts +
+ * tous ses buckets personnels (clé exacte ou clés préfixées `<accountKey>:`).
+ * Retourne { ok, buckets } : buckets=nombre de buckets purgés.
+ * Best-effort : si le compte n'existe pas, retourne { ok: false }.
+ */
+function deleteAccountData(accountKey) {
+  const state = load();
+  if (!state.accounts[accountKey]) return { ok: false, buckets: 0 };
+  delete state.accounts[accountKey];
+  let buckets = 0;
+  const prefix = String(accountKey) + ':';
+  for (const k of Object.keys(state.buckets)) {
+    if (k === String(accountKey) || k.indexOf(prefix) === 0) {
+      delete state.buckets[k];
+      buckets += 1;
+    }
+  }
+  save(state);
+  return { ok: true, buckets };
+}
+
 function resetSecret(accountKey) {
   const state = load();
   if (!state.accounts[accountKey]) return null;
@@ -148,4 +170,4 @@ function status() {
   };
 }
 
-module.exports = { registerAccount, authAccount, putEntries, pull, resetSecret, status };
+module.exports = { registerAccount, authAccount, putEntries, pull, resetSecret, status, deleteAccountData };
