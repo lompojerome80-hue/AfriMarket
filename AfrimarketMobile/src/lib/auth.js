@@ -125,6 +125,24 @@ export async function deleteAccountRecord(key) {
   return true;
 }
 
+export async function deleteAccount(user) {
+  const key = userKey(user);
+  const removed = await deleteAccountRecord(key);
+  const store = await getDossiers();
+  if (key && store && store[key]) {
+    delete store[key];
+    if (Object.keys(store).length === 0) {
+      await AsyncStorage.removeItem(DOSSIERS_KEY);
+    } else {
+      await AsyncStorage.setItem(DOSSIERS_KEY, JSON.stringify(store));
+    }
+  }
+  await AsyncStorage.removeItem(USER_KEY);
+  await AsyncStorage.removeItem('afrimarket_user_v1');
+  await AsyncStorage.removeItem(OTP_KEY);
+  return removed;
+}
+
 export function isClosedAccount(account) {
   return account?.accountStatus === 'ferme';
 }

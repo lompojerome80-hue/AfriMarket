@@ -11,7 +11,7 @@ import {
   ROLES, ROLE_ADMIN, MOYENS_DEPLACEMENT,
   registerUser, loginUser, updateDossier, isDossierComplete,
   sendWhatsappOtp, verifyWhatsappOtp, loginWithOtp, loginGoogleSimulated, loginAdminSimulated,
-  userKey, validatePassword,
+  userKey, validatePassword, deleteAccount,
 } from '../src/lib/auth';
 import { getLivreurDues, getCoursesForLivreur } from '../src/lib/deliveries';
 import { getOrdersFor } from '../src/lib/orders';
@@ -260,6 +260,25 @@ export default function AccountScreen({ onUserChange }) {
     setRole('Acheteur');
     setDossierOpen(false);
     setRevenus({ enAttente: 0, libere: 0, total: 0 });
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    Alert.alert(
+      'Supprimer mon compte',
+      'Vos données locales (compte, dossier livreur, notifications) seront définitivement supprimées. Cette action est irréversible.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer définitivement',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteAccount(user);
+            await logout();
+          },
+        },
+      ]
+    );
   };
 
   const handleMyBoutique = async () => {
@@ -706,6 +725,10 @@ export default function AccountScreen({ onUserChange }) {
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Text style={styles.logoutBtnText}>{t('se_deconnecter')}</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount}>
+          <Text style={styles.deleteBtnText}>Supprimer mon compte</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       <Modal
@@ -1052,6 +1075,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoutBtnText: { color: COLORS.piment, fontSize: 15, fontWeight: '700' },
+  deleteBtn: {
+    marginTop: 10,
+    paddingVertical: 16,
+    borderRadius: 12,
+    backgroundColor: COLORS.piment,
+    alignItems: 'center',
+  },
+  deleteBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(15,14,35,0.6)',
