@@ -1,0 +1,45 @@
+# AfriMarket — État factuel au disque (chantiers ③ + ④)
+
+Vérifié le 15/09/2026 (canal fiable : copies Temp + comptage TAP disque).
+
+## Suite de tests (preuve TAP au disque)
+
+- Fichier : `TAP_4bis_all.txt` (Compte : **26/26 VERT** — `# tests 26`, `# pass 26`, `# fail 0`).
+- Fichiers couverts : `tests/{auth.test.cjs, authContext.test.cjs, appAuth.test.cjs,
+  screensMigration.test.cjs, preStore.test.cjs}`.
+- Harnais : `node --test` (TAP) sur les fichiers réels du repo, sortie écrite
+  au disque puis comptée.
+
+## Git (repo canonique, dossier `amazon_clone-main`)
+
+- HEAD : `9a56690` — « Chantier ④-3 : suppression de compte utilisateur
+  (deleteAccount lib + bouton AccountScreen), correctif session AuthContext
+  (import AsyncStorage manquant), tests prevention preStore 26/26 verts ».
+- Confirmé en dessous : `b0bd921` (④-6 eas.json), `e156079` (④-1 app.json).
+- Arbre : propre (aucun changement non commité au moment de HEAD).
+
+## Données réellement collectées (preuve disque `src/`)
+
+| Type | Emplacement | Stocké où | Partagé ? |
+|---|---|---|---|
+| Nom + mot de passe + téléphone (profile) | `src/lib/auth.js` + `src/context/AuthContext.js` (clé `afrimarket_user_v1`) | AsyncStorage + Supabase | Non |
+| Panier / wishlist / commandes / notifications / dues / villainous clés `afrimarket_*` | AsyncStorage | Local device | Non |
+| Dossier livraison + position GPS (`expo-location`) | `src/lib/location.js` | Transitoire | Non |
+| Photos / caméra (boutique, avatar) | `expo-camera` + `expo-image-picker` | Transitoire / gallery | Non |
+| Notifications push (token Expo + contenu) | `src/lib/push.js` (`afrimarket_push_tokens`) | AsyncStorage + serveur | Non |
+| Transactions in-app (montant, provider, statut) | `src/lib/payments.js`, route `/api/pay/*` | Supabase + passerelle (CinetPay) | Non (passerelle uniquement) |
+| Admin / modération (flags, avis) | `src/lib/admin.js`, table Alert... | AsyncStorage + Supabase | Non |
+
+## Ce qui reste à faire AVANT « 100 % déployé sur les stores »
+
+1. **Suppression compte côté serveur (Supabase)** : le yes service exige une
+   vrai suppression ; actuellement seul l'AsyncStorage local est purgé +
+   déconnexion. → endpoинт serveur + test préventif TAP.
+2. **Compte développeur** Google Play (= toi) + frais + D-U-N-S + politique FR
+   **hébergée en HTTPS** et collée dans Data-safety.
+3. **Build EAS signé** de production (AAB) par toi, puis upload en **test
+   interne** avant production + captures d'écran.
+
+**Donc : le CODE + la DOCUMENTATION sont prêts, mais « 100 % deployé » reste
+FAUX tant que les 3 points ci-dessus ne sont pas faits (compte + hébergement
++ build signé + suppression serveur).**
