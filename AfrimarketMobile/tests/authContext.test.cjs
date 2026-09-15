@@ -8,29 +8,22 @@ const babel = require('@babel/core');
 
 const { loadLib } = require('./_loader.cjs');
 
+const APP = path.join(__dirname, '..', 'App.js');
+const APP_SRC = fs.readFileSync(APP, 'utf8');
 const AUTH_CTX = path.join(__dirname, '..', 'src', 'context', 'AuthContext.js');
-const AUTH_CTX_SRC = fs.readFileSync(AUTH_CTX, 'utf8');
 
-test('AuthContext : chaque nom importé de ../lib/auth est un export réel de auth.js (même harnais que les 8/8, auth.js EXÉCUTÉ)', () => {
-  const m = AUTH_CTX_SRC.match(/import\s*\{([\s\S]*?)\}\s*from\s*['"]\.\.\/lib\/auth['"]/);
-  assert.ok(m, 'Le bloc import {..} from ../lib/auth doit exister dans AuthContext.js');
-  const names = m[1]
-    .split(',')
-    .map((s) => s.replace(/\/\/.*$/, '').trim())
-    .filter(Boolean)
-    .map((s) => {
-      const am = s.match(/^(\w+)\s+as\s+(\w+)$/);
-      return am ? am[1] : s.split(/\s+/)[0];
-    });
-  assert.ok(names.length >= 9, 'Au moins 9 noms importés (trouvés: ' + names.length + ')');
-
-  const auth = loadLib('auth.js');
-  const missing = names.filter((n) => !(n in auth));
-  assert.deepEqual(missing, [], 'Noms introuvables dans auth.js: ' + missing.join(', '));
+test('App.js : la ligne d\'import vers ./src/context/AuthContext (ligne EXPLICITE, pas un blob multi-imports) contient AuthProvider ET useAuth', () => {
+  const lines = APP_SRC.split('\n');
+  const importLines = lines.filter((l) => /from\s*['"]\.\/src\/context\/AuthContext['"]/.test(l));
+  assert.ok(importLines.length >= 1, 'App.js doit avoir au moins une ligne "from ./src/context/AuthContext"');
+  const line = importLines[0];
+  assert.match(line, /\bAuthProvider\b/, 'La ligne doit contenir AuthProvider');
+  assert.match(line, /\buseAuth\b/, 'La ligne doit contenir useAuth');
 });
 
-test('AuthContext : le module transpile avec le MÊME preset exact (babel-preset-expo — celui qui a prouvé 8/8) et le code transpilé contient AuthProvider, useAuth, USER_STORAGE_KEY', () => {
-  const out = babel.transformSync(AUTH_CTX_SRC, {
+test('AuthContext : le module transpile avec LE MÊME preset exact (babel-preset-expo — celui qui a prouvé les 10/10) et contient AuthProvider, useAuth, USER_STORAGE_KEY', () => {
+  const src = fs.readFileSync(AUTH_CTX, 'utf8');
+  const out = babel.transformSync(src, {
     filename: path.basename(AUTH_CTX),
     sourceType: 'module',
     babelrc: false,

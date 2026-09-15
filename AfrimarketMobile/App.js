@@ -33,6 +33,7 @@ import SeasonalSplash from './src/components/SeasonalSplash';
 import { getCartCount } from './src/lib/cart';
 import { getCurrentUser, userKey } from './src/lib/auth';
 import { registerAccountForPush } from './src/lib/push';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { autoSync } from './src/lib/sync';
 import { getSellerContractState } from './src/lib/contract';
 
@@ -173,10 +174,18 @@ function MainTabs({ user: userProp, onUserChange }) {
 }
 
 export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+
+function AppContent() {
+  const { user, reloadUser, applyUser } = useAuth();
   const [ready, setReady] = useState(false);
-  const [user, setUser] = useState(null);
   const [contractOpenedFor, setContractOpenedFor] = useState(null);
-  const onUserChange = useCallback((u) => setUser(u), []);
+  const onUserChange = useCallback((u) => applyUser(u), [applyUser]);
   const pendingAdRef = useRef(null);
   const triesAdRef = useRef(0);
   const userAdRef = useRef(null);
@@ -286,7 +295,7 @@ export default function App() {
     return (
       <SplashScreen
         onDone={async () => {
-          setUser(await getCurrentUser());
+          await reloadUser();
           setReady(true);
         }}
         onAdPress={handleAdPress}
@@ -310,7 +319,7 @@ export default function App() {
               <OnboardingScreen
                 {...props}
                 onLoggedIn={(u) => {
-                  setUser(u);
+                  applyUser(u);
                   if (pendingAdRef.current) {
                     triesAdRef.current = 0;
                     openPendingAd();
