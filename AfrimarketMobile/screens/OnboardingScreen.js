@@ -4,9 +4,9 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import {
-  registerUser, loginUser, findAccount, resetPassword, sendWhatsappOtp, verifyWhatsappOtp,
-  ROLES, validatePassword, loginAdminSimulated,
+  ROLES, validatePassword,
 } from '../src/lib/auth';
+import { useAuth } from '../src/context/AuthContext';
 import { COLORS } from '../src/constants/theme';
 
 const ROLE_HELP = {
@@ -44,6 +44,7 @@ function PasswordField({ value, onChangeText, placeholder, visible, onToggle }) 
 }
 
 export default function OnboardingScreen({ onLoggedIn }) {
+  const { register, login, sendOtp, verifyOtp, resetPassword, loginAdmin, findAccount } = useAuth();
   const [role, setRole] = useState(null);
   const [loginMode, setLoginMode] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
@@ -71,7 +72,7 @@ export default function OnboardingScreen({ onLoggedIn }) {
     }
     if (loginMode) {
       setBusy(true);
-      const res = await loginUser({ phone, password });
+      const res = await login(phone, password);
       setBusy(false);
       if (!res.ok) { Alert.alert('Connexion impossible', res.error); return; }
       onLoggedIn(res.user);
@@ -95,7 +96,7 @@ export default function OnboardingScreen({ onLoggedIn }) {
       return;
     }
     setBusy(true);
-    const res = await registerUser({
+    const res = await register({
       phone, password, role, name: name.trim(),
       courierDossier: role === 'Livreur' ? {} : undefined,
     });
@@ -105,7 +106,7 @@ export default function OnboardingScreen({ onLoggedIn }) {
   };
 
   const handleAdminDemo = async () => {
-    const res = await loginAdminSimulated();
+    const res = await loginAdmin();
     if (!res.ok) { Alert.alert('Connexion impossible', res.error); return; }
     onLoggedIn(res.user);
   };
@@ -123,7 +124,7 @@ export default function OnboardingScreen({ onLoggedIn }) {
       Alert.alert('Aucun compte', 'Aucun compte n’est enregistré avec ce numéro.');
       return;
     }
-    const res = await sendWhatsappOtp(p);
+    const res = await sendOtp(p);
     setBusy(false);
     if (!res.ok) { Alert.alert('Erreur', res.error); return; }
     setOtpPhone(p);
@@ -154,11 +155,11 @@ export default function OnboardingScreen({ onLoggedIn }) {
     const pw = validatePassword(newPass);
     if (!pw.ok) { Alert.alert('Mot de passe faible', pw.issues.join('\n• ')); return; }
     setBusy(true);
-    const v = await verifyWhatsappOtp(otpPhone, code.trim());
+    const v = await verifyOtp(otpPhone, code.trim());
     if (!v.ok) { setBusy(false); Alert.alert('Vérification impossible', v.error); return; }
     const rp = await resetPassword(otpPhone, newPass);
     if (!rp.ok) { setBusy(false); Alert.alert('Réinitialisation impossible', rp.error); return; }
-    const lg = await loginUser({ phone: otpPhone, password: newPass });
+    const lg = await login(otpPhone, newPass);
     setBusy(false);
     if (!lg.ok) { Alert.alert('Connexion impossible', lg.error); return; }
     onLoggedIn(lg.user);

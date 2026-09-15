@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, Image, Share,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import { useAuth } from '../src/context/AuthContext';
 import { boutiqueExists } from '../src/lib/boutique';
 import {
   ROLES, ROLE_ADMIN, MOYENS_DEPLACEMENT,
-  getCurrentUser, registerUser, loginUser, updateDossier, isDossierComplete,
+  registerUser, loginUser, updateDossier, isDossierComplete,
   sendWhatsappOtp, verifyWhatsappOtp, loginWithOtp, loginGoogleSimulated, loginAdminSimulated,
-  logout, userKey, validatePassword,
+  userKey, validatePassword,
 } from '../src/lib/auth';
 import { getLivreurDues, getCoursesForLivreur } from '../src/lib/deliveries';
 import { getOrdersFor } from '../src/lib/orders';
@@ -33,7 +34,7 @@ const docStatusLabel = {
 
 export default function AccountScreen({ onUserChange }) {
   const navigation = useNavigation();
-  const [user, setUser] = useState(null);
+  const { user, applyUser, logout, reloadUser } = useAuth();
   const [mode, setMode] = useState('register'); // register | login | otp
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -62,18 +63,6 @@ export default function AccountScreen({ onUserChange }) {
   const [dRecto, setDRecto] = useState(null);
   const [dVerso, setDVerso] = useState(null);
   const [lang, setLangState] = useState(getLang());
-  const lastUserKeyRef = useRef(null);
-
-  const applyUser = useCallback(
-    (u) => {
-      const ukey = u ? userKey(u) : null;
-      const changed = ukey !== lastUserKeyRef.current;
-      lastUserKeyRef.current = ukey;
-      setUser(u);
-      if (changed && onUserChange) onUserChange(u);
-    },
-    [onUserChange]
-  );
 
   const refresh = useCallback(async (u) => {
     if (!u) return;
@@ -101,14 +90,16 @@ export default function AccountScreen({ onUserChange }) {
   useFocusEffect(
     useCallback(() => {
       (async () => {
-        const u = await getCurrentUser();
-        applyUser(u);
+        await reloadUser();
         await initI18n();
         setLangState(getLang());
-        if (u) refresh(u);
       })();
-    }, [refresh])
+    }, [reloadUser])
   );
+
+  useEffect(() => {
+    if (user) refresh(user);
+  }, [user, refresh]);
 
   useEffect(() => {
     if (dossierOpen && user) {
@@ -260,7 +251,6 @@ export default function AccountScreen({ onUserChange }) {
 
   const handleLogout = async () => {
     await logout();
-    applyUser(null);
     setName('');
     setPhone('');
     setPassword('');
