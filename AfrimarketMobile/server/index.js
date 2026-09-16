@@ -50,7 +50,7 @@ function json(res, code, data) {
   const body = JSON.stringify(data);
   res.writeHead(code, {
     'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': (process.env.AFRIMARKET_ALLOW_ORIGIN || '*'),
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, X-Token, X-Notify-Token, X-Admin-Token, X-Push-Key, X-Sync-Account, X-Sync-Secret, X-Device-Key',
     'Content-Length': Buffer.byteLength(body),
@@ -128,7 +128,7 @@ function notFound(req, res) {
 const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': (process.env.AFRIMARKET_ALLOW_ORIGIN || '*'),
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 'Access-Control-Allow-Headers': 'Content-Type, X-Token, X-Notify-Token, X-Admin-Token, X-Push-Key, X-Sync-Account, X-Sync-Secret, X-Device-Key',
     });

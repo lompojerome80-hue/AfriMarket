@@ -356,6 +356,9 @@ export async function loginGoogleSimulated(role) {
 }
 
 export async function loginAdminSimulated() {
+  if (typeof __DEV__ !== 'undefined' && !__DEV__) {
+    return { ok: false, error: 'Connexion admin désactivée (hors développement)' };
+  }
   const user = {
     key: userKey({ name: 'admin' }),
     name: 'Administrateur',
