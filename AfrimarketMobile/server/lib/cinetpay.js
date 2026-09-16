@@ -215,6 +215,9 @@ async function getStatus(merchantTransactionId) {
  *  3. ne jamais se fier au body seul -> appel getStatus pour confirmer
  */
 function verifyWebhook({ body, rawBody, xToken, notifyToken }) {
+  if (getMode() === 'api' && !xToken) {
+    return { ok: false, error: 'Signature X-Token requise' };
+  }
   const store = require('./store');
 
   // API v1 : notify_token envoyé par CinetPay (par pays dans une passerelle)
