@@ -164,6 +164,17 @@ const server = http.createServer(async (req, res) => {
         return json(res, 400, { ok: false, error: 'merchantTransactionId et amount requis' });
       }
       const merchantTransactionId = String(parsed.merchantTransactionId).slice(0, 30);
+      const items = Array.isArray(parsed.items) ? parsed.items : [];
+      if (getMode() === 'api' && !items.length) {
+        return json(res, 400, { ok: false, error: 'Montant non sourçable : items du panier requis' });
+      }
+      if (items.length) {
+        const totalRecalcule = items.reduce((s, it) => s + Math.round(Number(it.prixUnitaire || it.price || 0) * Number(it.qte || it.quantity || 0)), 0);
+        const declared = Math.round(Number(parsed.amount));
+        if (totalRecalcule !== declared) {
+          return json(res, 400, { ok: false, error: 'Montant incohérent avec le panier (' + declared + ' vs ' + totalRecalcule + ')' });
+        }
+      }
       if (store.getByMerchant(merchantTransactionId)) {
         return json(res, 200, { ok: true, ...store.getByMerchant(merchantTransactionId) });
       }
