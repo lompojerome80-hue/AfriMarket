@@ -55,6 +55,12 @@
       "expo-location",
       "expo-notifications",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "7596a1bf-ae76-4d1a-b6b7-0422940895b4"
+      }
+    },
+    "owner": "afrimarquet"
   }
 }
