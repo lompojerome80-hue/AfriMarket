@@ -39,3 +39,8 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# AI tooling (ne jamais committer)
+.opencode/
+.opencode-tmp/
+.opencode_tmp/

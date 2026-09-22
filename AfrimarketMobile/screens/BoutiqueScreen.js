@@ -192,7 +192,7 @@ export default function BoutiqueScreen() {
 
   const saveStock = async (product, next) => {
     const value = Math.max(0, Math.floor(Number(next) || 0));
-    const res = await updateProductStock(slug, product.id, value);
+    const res = await updateProductStock(slug, accessCode.trim(), product.id, value);
     if (res.ok) {
       loadBoutique();
       showToast(value === 0 ? 'Produit épuisé' : `Stock : ${value}`);
@@ -219,7 +219,7 @@ export default function BoutiqueScreen() {
     }
     setSavingPrice(true);
     const oldPrice = Number(oldPriceInput) || 0;
-    const res = await updateProductPrice(slug, priceModal.id, { price, oldPrice });
+    const res = await updateProductPrice(slug, accessCode.trim(), priceModal.id, { price, oldPrice });
     setSavingPrice(false);
     if (res.ok) {
       setPriceModal(null);
@@ -232,7 +232,7 @@ export default function BoutiqueScreen() {
 
   const handleRemovePrice = async () => {
     setSavingPrice(true);
-    const res = await updateProductPrice(slug, priceModal.id, { price: Number(priceInput), oldPrice: 0 });
+    const res = await updateProductPrice(slug, accessCode.trim(), priceModal.id, { price: Number(priceInput), oldPrice: 0 });
     setSavingPrice(false);
     if (res.ok) {
       setPriceModal(null);

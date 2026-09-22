@@ -272,7 +272,7 @@ export async function addProductSecure(slug, password, product) {
     try {
       const { data, error } = await supabase.rpc('add_product_secure', {
         p_slug: slug, p_password: password, p_title: product.title, p_price: product.price,
-        p_img: product.img, p_category: product.category || 'Autre',
+        p_img: product.img,
       });
       if (error) throw error;
       await notifyFollowersNewProduct(slug, product.title);
@@ -312,16 +312,18 @@ export async function deleteProductSecure(slug, password, productId) {
   await lsSave(KEY, produits);
 }
 
-export async function updateProductStock(slug, productId, stock) {
+export async function updateProductStock(slug, password, productId, stock) {
   if (await isSupabaseAvailable()) {
     try {
       const { error } = await supabase.rpc('update_product_stock', {
-        p_product_id: productId, p_slug: slug, p_stock: Math.max(0, Math.floor(stock || 0)),
+        p_product_id: productId, p_slug: slug, p_password: password,
+        p_stock: Math.max(0, Math.floor(stock || 0)),
       });
       if (!error) return { ok: true };
     } catch { _sbOk = false; }
   }
   const KEY = 'afrimarket_produits_' + slug;
+  if (!password || !(await pwMatches(slug, password))) return { ok: false, error: 'Code boutique invalide' };
   const produits = await lsGet(KEY);
   const idx = produits.findIndex((p) => String(p.id) === String(productId));
   if (idx === -1) return { ok: false, error: 'Produit introuvable' };
@@ -330,19 +332,21 @@ export async function updateProductStock(slug, productId, stock) {
   return { ok: true };
 }
 
-export async function updateProductPrice(slug, productId, { price, oldPrice } = {}) {
+export async function updateProductPrice(slug, password, productId, { price, oldPrice } = {}) {
   const newPrice = Math.max(0, Number(price) || 0);
   const newOldPrice = Math.max(0, Number(oldPrice) || 0);
   const finalOld = newOldPrice > newPrice ? newOldPrice : 0;
   if (await isSupabaseAvailable()) {
     try {
       const { error } = await supabase.rpc('update_product_price', {
-        p_product_id: productId, p_slug: slug, p_price: newPrice, p_old_price: finalOld,
+        p_product_id: productId, p_slug: slug, p_password: password,
+        p_price: newPrice, p_old_price: finalOld,
       });
       if (!error) return { ok: true };
     } catch { _sbOk = false; }
   }
   const KEY = 'afrimarket_produits_' + slug;
+  if (!password || !(await pwMatches(slug, password))) return { ok: false, error: 'Code boutique invalide' };
   const produits = await lsGet(KEY);
   const idx = produits.findIndex((p) => String(p.id) === String(productId));
   if (idx === -1) return { ok: false, error: 'Produit introuvable' };
