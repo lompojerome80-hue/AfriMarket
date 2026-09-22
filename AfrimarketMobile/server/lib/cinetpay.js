@@ -214,7 +214,7 @@ async function getStatus(merchantTransactionId) {
  *  2. anti-replay : ignorer les notifications déjà traitées
  *  3. ne jamais se fier au body seul -> appel getStatus pour confirmer
  */
-function verifyWebhook({ body, rawBody, xToken, notifyToken }) {
+async function verifyWebhook({ body, rawBody, xToken, notifyToken }) {
   if (getMode() === 'api' && !xToken) {
     return { ok: false, error: 'Signature X-Token requise' };
   }
@@ -245,16 +245,34 @@ function verifyWebhook({ body, rawBody, xToken, notifyToken }) {
   }
 
   if (tx.status === 'SUCCESS') return { ok: true, processed: true, tx }; // anti-replay
-  const status = body.cpm_error_message
-    ? body.cpm_error_message
-    : body && (body.status || body.transactionStatus || 'SUCCESS');
-  const finalStatus = /success|accept|accepted/i.test(String(status)) ? 'SUCCESS' : 'PENDING';
-  if (finalStatus === 'SUCCESS') {
-    tx.status = 'SUCCESS';
-    tx.webhookAt = new Date().toISOString();
-    store.upsert(tx);
+
+  if (getMode() === 'api') {
+    // La notification CinetPay n'est qu'une alerte : on confirme le statut réel
+    // auprès de l'API avant de marquer la transaction payée.
+    try {
+      const confirmed = await getStatus(tx.merchantTransactionId);
+      const finalStatus = /success|accept|accepted/i.test(String(confirmed && confirmed.status))
+        ? 'SUCCESS'
+        : 'PENDING';
+      if (finalStatus !== 'SUCCESS') return { ok: true, processed: false, tx };
+    } catch {
+      return { ok: false, error: 'Statut CinetPay non confirmé' };
+    }
+  } else {
+    // Mock : aucun appel réseau possible. On acquitte seulement si le body ne
+    // signale pas explicitement un échec (le statut réel reste simulé).
+    const status = body.cpm_error_message
+      ? body.cpm_error_message
+      : body && (body.status || body.transactionStatus || 'SUCCESS');
+    if (!/success|accept|accepted/i.test(String(status))) {
+      return { ok: true, processed: false, tx };
+    }
   }
-  return { ok: true, processed: false, tx };
+
+  tx.status = 'SUCCESS';
+  tx.webhookAt = new Date().toISOString();
+  store.upsert(tx);
+  return { ok: true, processed: true, tx };
 }
 
 module.exports = {

@@ -30,6 +30,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
+      "allowBackup": false,
       "versionCode": 1,
       "permissions": [
         "android.permission.CAMERA",
@@ -52,7 +53,8 @@
       "expo-camera",
       "expo-image-picker",
       "expo-location",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-secure-store"
     ]
   }
 }

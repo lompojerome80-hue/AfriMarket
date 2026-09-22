@@ -1,31 +1,128 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Crypto from 'expo-crypto';
+import secure, { SECURE_KEYS } from './secure';
 import fid from './fid';
 
 const SETTINGS_KEY = 'afrimarket_platform_settings';
 const ZONES_KEY = 'afrimarket_zones';
+const ADMIN_SALT_KEY = 'afrimarket__admin_salt';
 
-const DEFAULTS = { minOrder: 0, homeMessage: '', featuredCarousel: true, adminCode: '', pubSellerEnabled: false, pubSellerMin: 50 };
+const DEFAULTS = { minOrder: 0, homeMessage: '', featuredCarousel: true, adminCodeSet: false, pubSellerEnabled: false, pubSellerMin: 50 };
+
+const MIN_ADMIN_CODE_LENGTH = 6;
+
+async function getAdminSalt() {
+  try {
+    let salt = await secure.getItem(ADMIN_SALT_KEY);
+    if (!salt) {
+      const bytes = await Crypto.getRandomBytesAsync(16);
+      salt = Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+      await secure.setItem(ADMIN_SALT_KEY, salt);
+    }
+    return salt;
+  } catch {
+    return '';
+  }
+}
+
+async function adminCodeDigest(code, salt) {
+  return Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA512,
+    'opencodeadmin::' + String(salt || '') + '::' + String(code || '')
+  );
+}
+
+function safeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+async function readAdminCodeRecord() {
+  try {
+    const raw = await secure.getItem(SECURE_KEYS.adminCode);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed.hash === 'string' && typeof parsed.salt === 'string' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function isAdminCodeSet() {
+  return !!(await readAdminCodeRecord());
+}
+
+export async function verifyAdminCode(code) {
+  const rec = await readAdminCodeRecord();
+  if (!rec || !rec.hash) return false;
+  const digest = await adminCodeDigest(String(code || '').trim(), rec.salt);
+  return safeEqual(digest, rec.hash);
+}
+
+export async function setPlatformAdminCode(input) {
+  const code = String(input || '').trim();
+  if (!code) {
+    await secure.removeItem(SECURE_KEYS.adminCode);
+    return { ok: true, set: false };
+  }
+  if (code.length < MIN_ADMIN_CODE_LENGTH) {
+    return { ok: false, error: 'Code admin trop court (6 caractères minimum).' };
+  }
+  const salt = await getAdminSalt();
+  if (!salt) return { ok: false, error: 'Stockage sécurisé indisponible sur cet appareil.' };
+  const hash = await adminCodeDigest(code, salt);
+  await secure.setItem(SECURE_KEYS.adminCode, JSON.stringify({ salt, hash }));
+  return { ok: true, set: true };
+}
+
+async function migrateLegacyAdminCode(stored) {
+  if (typeof stored.adminCode !== 'string' || !stored.adminCode.trim()) return false;
+  const rec = await readAdminCodeRecord();
+  if (rec) return false;
+  const salt = await getAdminSalt();
+  if (!salt) return false;
+  const hash = await adminCodeDigest(stored.adminCode.trim(), salt);
+  await secure.setItem(SECURE_KEYS.adminCode, JSON.stringify({ salt, hash }));
+  return true;
+}
+
+function stripAdminFields(obj) {
+  const out = { ...obj };
+  delete out.adminCode;
+  delete out.adminCodeSet;
+  return out;
+}
 
 export async function getPlatformSettings() {
+  let stored = {};
   try {
-    const s = JSON.parse(await AsyncStorage.getItem(SETTINGS_KEY)) || {};
-    return { ...DEFAULTS, ...s };
+    stored = JSON.parse(await AsyncStorage.getItem(SETTINGS_KEY)) || {};
   } catch {
-    return { ...DEFAULTS };
+    stored = {};
   }
+  if ('adminCode' in stored) {
+    try {
+      await migrateLegacyAdminCode(stored);
+      await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(stripAdminFields(stored)));
+    } catch {
+      // stockage sécurisé indisponible : on garde le comportement sans code plutôt qu'en clair
+      await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(stripAdminFields(stored)));
+    }
+  }
+  const flat = { ...DEFAULTS, ...stripAdminFields(stored) };
+  flat.adminCode = '';
+  flat.adminCodeSet = await isAdminCodeSet();
+  return flat;
 }
 
 export async function savePlatformSettings(patch) {
   const cur = await getPlatformSettings();
-  const next = { ...cur, ...patch };
+  const next = stripAdminFields({ ...cur, ...patch });
   await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
-  return next;
-}
-
-export async function verifyAdminCode(code) {
-  const s = await getPlatformSettings();
-  if (!s.adminCode) return true;
-  return String(s.adminCode).trim() === String(code || '').trim();
+  const saved = { ...next, adminCode: '', adminCodeSet: await isAdminCodeSet() };
+  return saved;
 }
 
 export async function getZones() {

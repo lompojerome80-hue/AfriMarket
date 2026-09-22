@@ -17,9 +17,14 @@
  *  - "<accountKey>"  : données personnelles d'un compte (panier, notifications,
  *                      messages, suivi de localisation...).
  *
- * Sécurité (démo locale) :
+ * Sécurité :
  *  - Chaque compte se voit attribuer un secret à la création (renvoyé une seule
  *    fois). Il est stocké haché (SHA-256 + sel).
+ *  - Buckets isolés par compte : "global" est partagé (place de marché), les
+ *    buckets "<accountKey>" / "<accountKey>:*" ne sont accessibles qu'à leur
+ *    propriétaire (vérifié côté routes, server/index.js).
+ *  - Les clés sensibles (comptes, hashs, OTP, dossiers KYC) ne sont jamais
+ *    répliquées : rejetées à l'écriture et purgées au chargement.
  *  - /api/sync/status exige le token admin (x-admin-token).
  */
 
@@ -33,14 +38,53 @@ function hashSecret(secret, salt) {
   return crypto.createHash('sha256').update(`${salt}:${secret}`).digest('hex');
 }
 
+/*
+ * Clés AsyncStorage qui ne doivent JAMAIS être répliquées côté serveur
+ * (hashs de mots de passe, comptes, OTP, dossiers KYC avec photos CNI).
+ * Aligné sur SYNC_EXCLUDE côté client (src/lib/sync.js).
+ */
+const SENSITIVE_KEYS = [
+  /^afrimarket_accounts$/,
+  /^afrimarket_user($|_)/,
+  /^afrimarket_otp($|_)/,
+  /^afrimarket_dossiers($|_)/,
+  /afrimarket_boutique_passwords/,
+];
+
+function isForbiddenEntry(key) {
+  const k = String(key || '');
+  return k === '__proto__' || k === 'constructor' || k === 'prototype'
+    || SENSITIVE_KEYS.some((re) => re.test(k));
+}
+
 function load() {
   try {
     const raw = JSON.parse(fs.readFileSync(FILE, 'utf8'));
-    return {
+    const state = {
       rev: Number(raw.rev) || 0,
       accounts: raw.accounts || {},
       buckets: raw.buckets || {},
     };
+    // Purge rétroactive : retire les clés sensibles et les noms interdits
+    // déjà présents dans le fichier (s'exécute une seule fois en pratique).
+    let touched = false;
+    for (const b of Object.keys(state.buckets)) {
+      if (isForbiddenEntry(b)) { delete state.buckets[b]; touched = true; continue; }
+      const bucket = state.buckets[b];
+      if (!bucket || typeof bucket !== 'object') continue;
+      for (const k of Object.keys(bucket)) {
+        if (isForbiddenEntry(k)) { delete bucket[k]; touched = true; }
+      }
+    }
+    // Purge des comptes dont la clé est un nom réservé.
+    for (const a of Object.keys(state.accounts)) {
+      if (a === '__proto__' || a === 'constructor' || a === 'prototype') {
+        delete state.accounts[a];
+        touched = true;
+      }
+    }
+    if (touched) save(state);
+    return state;
   } catch {
     return { rev: 0, accounts: {}, buckets: {} };
   }
@@ -57,7 +101,7 @@ function save(state) {
 
 function registerAccount(accountKey, deviceKey) {
   const state = load();
-  if (state.accounts[accountKey]) {
+  if (Object.prototype.hasOwnProperty.call(state.accounts, accountKey)) {
     const acc = state.accounts[accountKey];
     if (deviceKey && !acc.devices.includes(deviceKey)) acc.devices.push(deviceKey);
     save(state);
@@ -77,18 +121,23 @@ function registerAccount(accountKey, deviceKey) {
 
 function authAccount(accountKey, secret) {
   if (!accountKey || !secret) return false;
-  const acc = load().accounts[accountKey];
-  if (!acc) return false;
+  const accountList = load().accounts;
+  if (!Object.prototype.hasOwnProperty.call(accountList, accountKey)) return false;
+  const acc = accountList[accountKey];
+  if (!acc || !acc.salt || !acc.secretHash) return false;
   return hashSecret(String(secret), acc.salt) === acc.secretHash;
 }
 
 function putEntries(bucket, entries, by, clientTsOverride) {
   if (!entries || typeof entries !== 'object') return { rev: 0, saved: 0 };
+  const b = String(bucket || '');
+  if (isForbiddenEntry(b)) return { rev: 0, saved: 0 };
   const state = load();
-  const target = state.buckets[bucket] || (state.buckets[bucket] = {});
+  const target = state.buckets[b] || (state.buckets[b] = {});
   let saved = 0;
   const clientTs = Number(clientTsOverride) || Date.now();
   for (const key of Object.keys(entries)) {
+    if (isForbiddenEntry(key)) continue;
     const value = entries[key];
     if (value === undefined || value === null) continue;
     const cur = target[key];
@@ -134,7 +183,7 @@ function pull(bucket, since) {
  */
 function deleteAccountData(accountKey) {
   const state = load();
-  if (!state.accounts[accountKey]) return { ok: false, buckets: 0 };
+  if (!Object.prototype.hasOwnProperty.call(state.accounts, accountKey)) return { ok: false, buckets: 0 };
   delete state.accounts[accountKey];
   let buckets = 0;
   const prefix = String(accountKey) + ':';

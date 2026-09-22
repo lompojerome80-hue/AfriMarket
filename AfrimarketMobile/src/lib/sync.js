@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import secure, { SECURE_KEYS } from './secure';
 
 import { PAYMENT_API_BASE } from '../services/paymentApi';
 import { userKey } from './auth';
@@ -21,12 +22,16 @@ import { userKey } from './auth';
  */
 
 const META_KEY = 'afrimarket__sync';
-const CREDS_KEY = 'afrimarket__sync_creds';
+const CREDS_KEY = SECURE_KEYS.syncCreds;
 const DEVICE_KEY = 'afrimarket__device';
 const TIMEOUT_MS = 6000;
 
 const SYNC_EXCLUDE = [
   /^afrimarket__/,
+  /^afrimarket_accounts$/,
+  /^afrimarket_user($|_)/,
+  /^afrimarket_otp($|_)/,
+  /^afrimarket_dossiers($|_)/,
   /afrimarket_boutique_passwords/,
 ];
 
@@ -72,14 +77,14 @@ function getOrCreateDeviceKey() {
 
 async function getCreds(accountKey) {
   try {
-    const raw = await AsyncStorage.getItem(CREDS_KEY);
+    const raw = await secure.getItem(CREDS_KEY);
     const creds = raw ? JSON.parse(raw) : null;
     if (creds && creds.accountKey === accountKey && creds.secret) return creds;
     const deviceKey = await getOrCreateDeviceKey();
     const res = await request('/api/sync/register', { method: 'POST', body: { accountKey, deviceKey } });
     if (!res || !res.secret) return null;
     const next = { accountKey, secret: res.secret, deviceKey };
-    await AsyncStorage.setItem(CREDS_KEY, JSON.stringify(next));
+    await secure.setItem(CREDS_KEY, JSON.stringify(next));
     return next;
   } catch {
     return null;

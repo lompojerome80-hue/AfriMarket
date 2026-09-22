@@ -1,5 +1,5 @@
-﻿import React, { createContext, useContext, useCallback, useMemo, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useCallback, useMemo, useState } from 'react';
+import secure, { SECURE_KEYS } from '../lib/secure';
 
 import {
   registerUser, loginUser, findAccount, resetPassword,
@@ -7,7 +7,7 @@ import {
   loginGoogleSimulated, loginAdminSimulated, logout, userKey, getCurrentUser,
 } from '../lib/auth';
 
-export const USER_STORAGE_KEY = 'afrimarket_user_v1';
+export const USER_STORAGE_KEY = SECURE_KEYS.session;
 
 const AuthContext = createContext(null);
 
@@ -18,10 +18,10 @@ export function AuthProvider({ children, initialUser = null, onUserChange = null
     async (u) => {
       setUser(u);
       if (onUserChange) onUserChange(u);
-      if (u) {
-        await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(u));
+if (u) {
+        await secure.setItem(USER_STORAGE_KEY, JSON.stringify(u));
       } else {
-        await AsyncStorage.removeItem(USER_STORAGE_KEY);
+        await secure.removeItem(USER_STORAGE_KEY);
       }
     },
     [onUserChange]

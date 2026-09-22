@@ -51,11 +51,29 @@ async function request(path, { method = 'GET', body } = {}) {
       body: body ? JSON.stringify(body) : undefined,
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = new Error(data?.error || `HTTP ${res.status}`);
+      err.status = res.status;
+      err.payload = data;
+      throw err;
+    }
     return data;
   } finally {
     clearTimeout(timer);
   }
+}
+
+/*
+ * Rejet explicite du serveur (4xx/5xx) -> { ok:false, error }
+ * pour le distinguer d'une simple panne réseau -> null.
+ * C'est ce qui empêche PayScreen de basculer en paiement simulé
+ * quand le serveur refuse (ex: montant non sourçable en mode api).
+ */
+function remoteResult(err) {
+  if (err && err.status) {
+    return { ok: false, error: (err && err.message) || 'Erreur serveur', status: err.status };
+  }
+  return null;
 }
 
 export async function pingServer() {
@@ -70,8 +88,8 @@ export async function pingServer() {
 export async function initRemotePayment(payload) {
   try {
     return await request('/api/pay/init', { method: 'POST', body: payload });
-  } catch {
-    return null;
+  } catch (err) {
+    return remoteResult(err);
   }
 }
 
@@ -81,8 +99,8 @@ export async function verifyRemoteOtp(merchantTransactionId, otpCode) {
       method: 'POST',
       body: { merchantTransactionId, otpCode: String(otpCode || '') },
     });
-  } catch {
-    return null;
+  } catch (err) {
+    return remoteResult(err);
   }
 }
 
@@ -92,16 +110,16 @@ export async function resendRemoteOtp(merchantTransactionId) {
       method: 'POST',
       body: { merchantTransactionId },
     });
-  } catch {
-    return null;
+  } catch (err) {
+    return remoteResult(err);
   }
 }
 
 export async function getRemoteStatus(merchantTransactionId) {
   try {
     return await request(`/api/pay/status/${encodeURIComponent(merchantTransactionId)}`);
-  } catch {
-    return null;
+  } catch (err) {
+    return remoteResult(err);
   }
 }
 

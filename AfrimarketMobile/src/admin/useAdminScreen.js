@@ -13,7 +13,7 @@ import { getAllOrders } from '../lib/orders';
 import { getCoupons, createCoupon, toggleCoupon, deleteCoupon } from '../lib/coupons';
 import { getAdminInfos, saveAdminInfos, getAccountFlags, addFlag, notifyFlag, liftFlag, closeFlaggedAccount, reopenFlaggedAccount, deleteAccountByKey, getModerationLog, getAccountsWithFlags, getSellerBoutiqueNames, broadcastNotification, getFeatured, toggleFeaturedBoutique, toggleFeaturedProduct, getBoutiquesForAdmin, getProductReports, setProductReportStatus, getAllDuesOverview, getAdminReport, exportAllData, resetDemoData } from '../lib/admin';
 import { getAllProducts, adminDeleteProduct, getAllReviews, deleteProductReview } from '../lib/products';
-import { getPlatformSettings, savePlatformSettings, getZones, addZone, deleteZone, verifyAdminCode } from '../lib/settings';
+import { getPlatformSettings, savePlatformSettings, getZones, addZone, deleteZone, verifyAdminCode, setPlatformAdminCode } from '../lib/settings';
 import { getAuditLog, logAudit } from '../lib/audit';
 import { getNotesForAccount, addAccountNote } from '../lib/notes';
 import { getCampaigns, createCampaignWithImage, setCampaignActive, deleteCampaign } from '../lib/campaigns';
@@ -79,7 +79,7 @@ export function useAdminScreen() {
   const [zFrais, setZFrais] = useState('');
   const [reviews, setReviews] = useState([]);
   const [pubReq, setPubReq] = useState([]);
-  const [plat, setPlat] = useState({ minOrder: 0, homeMessage: '', featuredCarousel: true, adminCode: '', pubSellerEnabled: false, pubSellerMin: 50 });
+  const [plat, setPlat] = useState({ minOrder: 0, homeMessage: '', featuredCarousel: true, adminCodeSet: false, pubSellerEnabled: false, pubSellerMin: 50 });
   const [noteModal, setNoteModal] = useState(null);
   const [noteText, setNoteText] = useState('');
   const [codeOk, setCodeOk] = useState(false);
@@ -186,7 +186,11 @@ export function useAdminScreen() {
   const audit = (action, detail) => logAudit({ action, detail, by: admin?.name || 'Admin' });
 
   const requireCode = (title, onOk) => {
-    if (codeOk || !plat.adminCode) { onOk(); return; }
+    if (codeOk) { onOk(); return; }
+    if (!plat.adminCodeSet) {
+      Alert.alert('Code admin requis', 'Aucun code administrateur configuré. Définissez-en un dans Paramètres avant d\'effectuer des actions sensibles.');
+      return;
+    }
     setCodeInput('');
     setCodePrompt({ title, onOk });
   };
@@ -620,19 +624,34 @@ const handleDossierStatus = async (key, status) => {
 
   /* ������ Paramètres plateforme ������ */
   const savePlat = async () => {
+    const typedCode = String(plat.adminCode || '').trim();
+    if (typedCode) {
+      const r = await setPlatformAdminCode(typedCode);
+      if (!r.ok) {
+        Alert.alert('Code admin', r.error);
+        return;
+      }
+    }
     const next = await savePlatformSettings({
       minOrder: Math.max(0, Number(plat.minOrder) || 0),
       homeMessage: String(plat.homeMessage || '').trim(),
       featuredCarousel: !!plat.featuredCarousel,
-      adminCode: String(plat.adminCode || '').trim(),
       pubSellerEnabled: !!plat.pubSellerEnabled,
       pubSellerMin: Math.max(1, Number(plat.pubSellerMin) || 50),
     });
     setPlat(next);
     await audit('Paramètres mis à jour',
-      `min ${next.minOrder} · message ${next.homeMessage ? 'oui' : 'non'} · carrousel ${next.featuredCarousel ? 'on' : 'off'} · code admin ${next.adminCode ? 'défini' : 'désactivé'}`);
-    Alert.alert('Paramètres enregistrés �S',
-      next.adminCode ? 'Le code admin sera désormais demandé avant certaines actions sensibles de la console.' : 'Aucun code admin configuré : les actions sensibles sont directement accessibles.');
+      `min ${next.minOrder} · message ${next.homeMessage ? 'oui' : 'non'} · carrousel ${next.featuredCarousel ? 'on' : 'off'} · code admin ${next.adminCodeSet ? 'défini' : 'désactivé'}`);
+    Alert.alert('Paramètres enregistrés',
+      next.adminCodeSet ? 'Le code admin sera demandé avant les actions sensibles de la console.' : 'Aucun code admin configuré : les actions sensibles restent verrouillées.');
+  };
+
+  const disableAdminCode = async () => {
+    await setPlatformAdminCode('');
+    const fresh = await getPlatformSettings();
+    setPlat(fresh);
+    await audit('Code admin désactivé', 'les actions sensibles sont de nouveau verrouillées');
+    Alert.alert('Code admin désactivé', 'Le code ne sera plus demandé : les actions sensibles restent verrouillées tant qu\'aucun code n\'est défini dans Paramètres.');
   };
 
   /* ������ Rapport mensuel + export CSV ������ */
@@ -1098,6 +1117,7 @@ const pickCampMode = (mode) => {
     deleteZoneItem,
     handleDeleteReview,
     savePlat,
+    disableAdminCode,
     handleExportRapport,
     openModeration,
     confirmReasonAction,

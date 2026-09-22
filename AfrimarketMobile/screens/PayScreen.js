@@ -131,6 +131,23 @@ export default function PayScreen() {
       setOtpInput('');
       setOtpCode('');
       const merchantTransactionId = makeMerchantId();
+      const basket = [
+        ...(Array.isArray(items) ? items : []).map((it) => ({
+          id: it.id != null ? String(it.id) : 'article',
+          name: it.title || 'Article',
+          prixUnitaire: Math.round(Number(it.price) || 0),
+          qte: Math.max(1, Number(it.qty) || 1),
+        })),
+      ];
+      if (promo) {
+        basket.push({ id: 'promo', name: `Code promo ${promo.code}`, prixUnitaire: -Math.round(Number(promo.remise) || 0), qte: 1 });
+      }
+      if (livraisonFee > 0) {
+        basket.push({ id: 'livraison', name: `Livraison ${zone ? zone.ville : ''}`, prixUnitaire: Math.round(livraisonFee), qte: 1 });
+      }
+      if (frais > 0) {
+        basket.push({ id: 'frais', name: `Frais ${provider.brand}`, prixUnitaire: Math.round(frais), qte: 1 });
+      }
       const init = await initRemotePayment({
         merchantTransactionId,
         amount: totalWithFees,
@@ -139,12 +156,22 @@ export default function PayScreen() {
         phone: digits,
         designation: 'Commande AfriMarket',
         customerName: user.name || 'Client',
+        items: basket,
       });
       if (init && init.ok) {
         setRemoteMode(true);
         setMerchantId(init.merchantTransactionId || merchantTransactionId);
         if (init.otpCode) setOtpCode(init.otpCode);
         if (init.mustBeRedirected && init.paymentUrl) openPaymentUrl(init.paymentUrl);
+      } else if (init && init.ok === false) {
+        setStage('init');
+        Alert.alert(
+          'Paiement refusé par le serveur',
+          (init.error || 'La passerelle de paiement a refusé la demande.') +
+            ' Aucun paiement simulé ne sera appliqué.',
+          [{ text: 'OK' }]
+        );
+        return;
       } else {
         setRemoteMode(false);
         setOtpCode(String(Math.floor(1000 + Math.random() * 9000)));

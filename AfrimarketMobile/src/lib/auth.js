@@ -1,13 +1,25 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
+import secure, { SECURE_KEYS } from './secure';
 
-const USER_KEY = 'afrimarket_user';
+const USER_KEY = SECURE_KEYS.session;
 const ACCOUNTS_KEY = 'afrimarket_accounts';
-const OTP_KEY = 'afrimarket_otp';
+const OTP_KEY = SECURE_KEYS.otp;
 const DOSSIERS_KEY = 'afrimarket_dossiers';
 
 export const ROLES = ['Acheteur', 'Vendeur', 'Livreur'];
 export const ROLE_ADMIN = 'Admin';
+
+export function isValidRole(role) {
+  return ROLES.includes(role);
+}
+
+function assertRole(role) {
+  if (role !== undefined && role !== null && !isValidRole(role)) {
+    return { ok: false, error: 'Rôle invalide : « ' + role + ' »' };
+  }
+  return { ok: true };
+}
 
 export const MOYENS_DEPLACEMENT = ['Moto', 'Vélo', 'Voiture', 'Vélo-taxi', 'À pied'];
 
@@ -137,9 +149,9 @@ export async function deleteAccount(user) {
       await AsyncStorage.setItem(DOSSIERS_KEY, JSON.stringify(store));
     }
   }
-  await AsyncStorage.removeItem(USER_KEY);
-  await AsyncStorage.removeItem('afrimarket_user_v1');
-  await AsyncStorage.removeItem(OTP_KEY);
+  await secure.removeItem(USER_KEY);
+  await secure.removeItem('afrimarket_user_v1');
+  await secure.removeItem(OTP_KEY);
   return removed;
 }
 
@@ -149,15 +161,27 @@ export function isClosedAccount(account) {
 
 export async function getCurrentUser() {
   try {
-    const raw = await AsyncStorage.getItem(USER_KEY);
-    return raw ? JSON.parse(raw) : null;
+    const raw = await secure.getItem(USER_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  try {
+    const legacy = await AsyncStorage.getItem('afrimarket_user');
+    if (!legacy) return null;
+    const parsed = JSON.parse(legacy);
+    const session = publicSession(parsed);
+    await secure.setItem(USER_KEY, JSON.stringify(session));
+    await AsyncStorage.removeItem('afrimarket_user');
+    await AsyncStorage.removeItem('afrimarket_otp');
+    return session;
   } catch {
     return null;
   }
 }
 
 export async function saveUser(user) {
-  await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+  await secure.setItem(USER_KEY, JSON.stringify(publicSession(user)));
   return user;
 }
 
@@ -172,14 +196,15 @@ export async function updateUser(patch) {
 async function upsertAccount(user) {
   const accounts = await getAccounts();
   const idx = accounts.findIndex((a) => a.key === userKey(user));
+  const previous = idx >= 0 ? accounts[idx] : null;
   const rec = {
     key: userKey(user),
     phone: user.phone || null,
     name: user.name || '',
     role: user.role || ROLES[0],
     google: !!user.google,
-    salt: user.salt || '',
-    hash: user.hash || '',
+    salt: user.salt || (previous ? previous.salt : ''),
+    hash: user.hash || (previous ? previous.hash : ''),
     courierDossier: user.courierDossier || undefined,
     createdAt: user.createdAt || new Date().toISOString(),
   };
@@ -206,9 +231,18 @@ function publicUser(account) {
   };
 }
 
+function publicSession(user) {
+  const copy = { ...user };
+  delete copy.salt;
+  delete copy.hash;
+  return copy;
+}
+
 export async function registerUser({ phone, password, role, name, courierDossier }) {
   const normalized = String(phone || '').replace(/\s+/g, '');
   if (!normalized) return { ok: false, error: 'Numéro de téléphone requis' };
+  const roleCheck = assertRole(role);
+  if (!roleCheck.ok) return roleCheck;
   const pw = validatePassword(password);
   if (!pw.ok) return { ok: false, error: 'Mot de passe faible: ' + pw.issues.join(', ') };
   const existing = await findAccount(normalized);
@@ -227,8 +261,9 @@ export async function registerUser({ phone, password, role, name, courierDossier
     courierDossier: role === 'Livreur' ? courierDossier || {} : undefined,
   };
   await upsertAccount(user);
-  await saveUser(user);
-  return { ok: true, user };
+  const session = publicSession(user);
+  await saveUser(session);
+  return { ok: true, user: session };
 }
 
 export async function loginUser({ phone, password }) {
@@ -254,7 +289,7 @@ export async function loginUser({ phone, password }) {
     account.hash = await hashPassword(password, account.salt || '');
     await upsertAccount(account);
   }
-  const user = { ...publicUser(account), salt: account.salt, hash: account.hash };
+  const user = publicUser(account);
   await saveUser(user);
   return { ok: true, user };
 }
@@ -282,7 +317,7 @@ export async function sendWhatsappOtp(phone) {
   Crypto.getRandomValues(buf);
   const rand = ((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3]) >>> 0;
   const otp = String(100000 + (rand % 900000));
-  await AsyncStorage.setItem(
+  await secure.setItem(
     OTP_KEY,
     JSON.stringify({
       phone: normalized,
@@ -295,7 +330,7 @@ export async function sendWhatsappOtp(phone) {
 }
 
 export async function verifyWhatsappOtp(phone, code) {
-  const raw = await AsyncStorage.getItem(OTP_KEY);
+  const raw = await secure.getItem(OTP_KEY);
   if (!raw) return { ok: false, error: 'Demander un code d\'abord' };
   const data = JSON.parse(raw);
   if (data.phone !== String(phone || '').replace(/\s+/g, '')) return { ok: false, error: 'Numéro différent' };
@@ -305,7 +340,7 @@ export async function verifyWhatsappOtp(phone, code) {
   const digest = await otpDigest(String(code), data.phone);
   if (digest !== data.digest) {
     data.attempts = (data.attempts || 0) + 1;
-    await AsyncStorage.setItem(OTP_KEY, JSON.stringify(data));
+    await secure.setItem(OTP_KEY, JSON.stringify(data));
     return { ok: false, error: 'Code incorrect' };
   }
   return { ok: true };
@@ -313,13 +348,15 @@ export async function verifyWhatsappOtp(phone, code) {
 
 export async function loginWithOtp({ phone, role, name, courierDossier }) {
   const normalized = String(phone || '').replace(/\s+/g, '');
+  const roleCheck = assertRole(role);
+  if (!roleCheck.ok) return roleCheck;
   let account = await findAccount(normalized);
   if (account && isClosedAccount(account)) {
     return { ok: false, error: 'Compte fermé : ce compte a été fermé par un administrateur. Contactez le support.' };
   }
   let user;
   if (account) {
-    user = { ...publicUser(account), salt: account.salt, hash: account.hash };
+    user = publicUser(account);
   } else {
     user = {
       key: userKey({ phone: normalized }),
@@ -338,6 +375,8 @@ export async function loginWithOtp({ phone, role, name, courierDossier }) {
 }
 
 export async function loginGoogleSimulated(role) {
+  const roleCheck = assertRole(role);
+  if (!roleCheck.ok) return roleCheck;
   const existing = await getCurrentUser();
   if (existing && existing.google) {
     return { ok: true, user: existing, simulated: true };
@@ -373,7 +412,7 @@ export async function loginAdminSimulated() {
 }
 
 export async function logout() {
-  await AsyncStorage.removeItem(USER_KEY);
+  await secure.removeItem(USER_KEY);
 }
 
 export async function updateDossier(dossier) {

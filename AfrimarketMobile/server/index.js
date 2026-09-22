@@ -40,6 +40,16 @@ const path = require('path');
 })();
 
 const cinetpay = require('./lib/cinetpay');
+
+// A52 FAIL-CLOSED : en mode api, un admin/push démo ou absent = REFUS DE DEMARRER.
+if (cinetpay.getMode() === 'api') {
+  const missing = [];
+  if (!process.env.ADMIN_TOKEN || process.env.ADMIN_TOKEN.length < 16 || process.env.ADMIN_TOKEN.includes('demo')) missing.push('ADMIN_TOKEN');
+  if (!process.env.PUSH_API_KEY || process.env.PUSH_API_KEY.length < 16 || process.env.PUSH_API_KEY.includes('demo')) missing.push('PUSH_API_KEY');
+  if (missing.length) {
+    throw new Error('[A52] Mode api : jeton(s) manquant(s) ou démo → bloqués : ' + missing.join(', ') + '. Renseignez server/.env (ADMIN_TOKEN et PUSH_API_KEY réels, min 16 chars).');
+  }
+}
 const store = require('./lib/store');
 const pushStore = require('./lib/pushStore');
 const syncStore = require('./lib/syncStore');
@@ -74,6 +84,41 @@ function syncHeaders(req) {
     secret: String(req.headers['x-sync-secret'] || ''),
     deviceKey: String(req.headers['x-device-key'] || '').slice(0, 80),
   };
+}
+
+/*
+ * Contrôle d'accès aux buckets sync :
+ *  - "global" : état partagé de la place de marché (accessible à tout compte authentifié).
+ *  - "<accountKey>" / "<accountKey>:*" : données personnelles, réservées au propriétaire.
+ *  - tout autre nom (y compris "__proto__") : refusé.
+ */
+function allowedBucket(accountKey, bucket) {
+  const name = String(bucket || '').replace(/[^a-zA-Z0-9_:-]/g, '').slice(0, 120);
+  if (!name) return 'global';
+  if (name === 'global') return 'global';
+  const key = String(accountKey || '');
+  if (name === key || name.startsWith(key + ':')) return name;
+  return null;
+}
+
+function isForbiddenKey(key) {
+  const k = String(key || '');
+  return k === '__proto__' || k === 'constructor' || k === 'prototype';
+}
+
+// Rate limit simple sur la création de comptes (anti prise de contrôle en masse
+// des accountKey : moins de 5 créations / 10 min / adresse IP).
+const REGISTER_WINDOW_MS = 10 * 60 * 1000;
+const REGISTER_MAX = 5;
+const registerLog = new Map();
+
+function allowRegister(ip) {
+  const now = Date.now();
+  const arr = (registerLog.get(ip) || []).filter((t) => now - t < REGISTER_WINDOW_MS);
+  registerLog.set(ip, arr);
+  if (arr.length >= REGISTER_MAX) return false;
+  arr.push(now);
+  return true;
 }
 
 function readBody(req) {
@@ -165,7 +210,7 @@ const server = http.createServer(async (req, res) => {
       }
       const merchantTransactionId = String(parsed.merchantTransactionId).slice(0, 30);
       const items = Array.isArray(parsed.items) ? parsed.items : [];
-      if (getMode() === 'api' && !items.length) {
+      if (cinetpay.getMode() === 'api' && !items.length) {
         return json(res, 400, { ok: false, error: 'Montant non sourçable : items du panier requis' });
       }
       if (items.length) {
@@ -175,8 +220,18 @@ const server = http.createServer(async (req, res) => {
           return json(res, 400, { ok: false, error: 'Montant incohérent avec le panier (' + declared + ' vs ' + totalRecalcule + ')' });
         }
       }
-      if (store.getByMerchant(merchantTransactionId)) {
-        return json(res, 200, { ok: true, ...store.getByMerchant(merchantTransactionId) });
+      const existing = store.getByMerchant(merchantTransactionId);
+      if (existing) {
+        // Ne jamais ré-exposer otpCode / notifyToken / téléphone à un premier appel.
+        return json(res, 200, {
+          ok: true,
+          merchantTransactionId: existing.merchantTransactionId,
+          transactionId: existing.transactionId,
+          status: existing.status,
+          amount: existing.amount,
+          currency: existing.currency,
+          mode: existing.mode,
+        });
       }
       const baseUrl = `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host || 'localhost'}`;
       const init = await cinetpay.initTransaction(
@@ -211,7 +266,14 @@ const server = http.createServer(async (req, res) => {
         paymentUrl: init.paymentUrl || null,
         createdAt: new Date().toISOString(),
       });
-      return json(res, 200, { ok: true, ...init });
+      const { otpCode, notifyToken, ...publicInit } = init;
+      return json(res, 200, {
+        ok: true,
+        ...publicInit,
+        // En mock, le code OTP simule le SMS (affiché pour la démo) ; en mode
+        // api, CinetPay envoie le code par SMS et il n'est JAMAIS renvoyé.
+        otpCode: init.mode === 'mock' ? otpCode : undefined,
+      });
     }
 
     if (req.method === 'POST' && url.pathname === '/api/pay/verify-otp') {
@@ -273,10 +335,14 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && url.pathname === '/api/sync/register') {
+      if (!allowRegister(req.socket.remoteAddress || 'unknown')) {
+        return json(res, 429, { ok: false, error: 'Trop de comptes créés depuis cette adresse, réessayez plus tard' });
+      }
       const { parsed } = await readBody(req);
       const accountKey = String((parsed && parsed.accountKey) || '').slice(0, 120);
       const deviceKey = String((parsed && parsed.deviceKey) || '').slice(0, 80);
-      if (!accountKey) return json(res, 400, { ok: false, error: 'accountKey requis' });
+      if (!accountKey || !deviceKey) return json(res, 400, { ok: false, error: 'accountKey et deviceKey requis' });
+      if (isForbiddenKey(accountKey)) return json(res, 400, { ok: false, error: 'accountKey invalide' });
       const r = syncStore.registerAccount(accountKey, deviceKey);
       return json(res, 200, { ok: true, first: r.first, secret: r.secret, accountKey });
     }
@@ -296,7 +362,10 @@ const server = http.createServer(async (req, res) => {
       if (!syncStore.authAccount(h.accountKey, h.secret)) {
         return json(res, 401, { ok: false, error: 'Compte ou secret invalide' });
       }
-      const bucket = String((parsed && parsed.bucket) || 'global').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 120) || 'global';
+      const bucket = allowedBucket(h.accountKey, parsed && parsed.bucket);
+      if (!bucket) {
+        return json(res, 403, { ok: false, error: 'Bucket non autorisé pour ce compte' });
+      }
       const { rev, saved } = syncStore.putEntries(bucket, parsed && parsed.entries, h.deviceKey, parsed && parsed.clientAt);
       return json(res, 200, { ok: true, rev, saved });
     }
@@ -306,7 +375,10 @@ const server = http.createServer(async (req, res) => {
       if (!syncStore.authAccount(h.accountKey, h.secret)) {
         return json(res, 401, { ok: false, error: 'Compte ou secret invalide' });
       }
-      const bucket = String(url.searchParams.get('bucket') || 'global').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 120) || 'global';
+      const bucket = allowedBucket(h.accountKey, url.searchParams.get('bucket') || 'global');
+      if (!bucket) {
+        return json(res, 403, { ok: false, error: 'Bucket non autorisé pour ce compte' });
+      }
       const since = Number(url.searchParams.get('since')) || 0;
       return json(res, 200, { ok: true, ...syncStore.pull(bucket, since) });
     }
@@ -318,7 +390,7 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'POST' && url.pathname === '/api/pay/webhook') {
       const { raw, parsed } = await readBody(req);
-      const vr = cinetpay.verifyWebhook({
+      const vr = await cinetpay.verifyWebhook({
         body: parsed,
         rawBody: parsed && typeof parsed === 'object' && !(parsed instanceof Object) ? '' : raw.toString('utf8'),
         xToken: req.headers['x-token'],

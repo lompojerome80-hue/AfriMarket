@@ -56,7 +56,7 @@ export function SectionInfos() {
 }
 
 export function SectionParametres() {
-  const { plat, setPlat, savePlat } = useAdminCtx();
+  const { plat, setPlat, savePlat, disableAdminCode } = useAdminCtx();
   return (
     <>
       <SectionHeader icon="🎚️" title="Paramètres de la plateforme" hint="Appliqués immédiatement : montant minimum de commande, message d'accueil, carrousel des produits en vedette et code de sécurité admin (optionnel)." />
@@ -99,18 +99,30 @@ export function SectionParametres() {
           })}
         </View>
 
-        <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Code admin (laissez vide pour désactiver)</Text>
+        <Text style={[styles.fieldLabel, { marginTop: 10 }]}>
+          {plat.adminCodeSet ? 'Changer le code admin (laisser vide pour conserver)' : 'Nouveau code admin (6 caractères minimum)'}
+        </Text>
         <TextInput
           style={styles.settingInput}
           value={plat.adminCode || ''}
           onChangeText={(v) => setPlat((p) => ({ ...p, adminCode: v }))}
-          placeholder="ex : 1234"
+          placeholder={plat.adminCodeSet ? 'Nouveau code (optionnel)' : 'Définir un code'}
           placeholderTextColor={COLORS.muted}
           secureTextEntry
         />
         <Text style={[styles.cardMeta, { marginTop: 8 }]}>
-          {plat.adminCode ? '🔒 Demandé avant : suppression de produit/compte, signalement, fermeture, diffusion, décision sur les commandes, suppression d\'avis et réinitialisation.' : '🔓 Aucun code : toutes les actions de la console sont directement accessibles.'}
+          {plat.adminCodeSet
+            ? '🔒 Code défini et demandé avant : suppression de produit/compte, signalement, fermeture, diffusion, décision sur les commandes, suppression d\'avis et réinitialisation.'
+            : '🔓 Aucun code configuré : les actions sensibles sont verrouillées tant qu\'un code n\'est pas défini.'}
         </Text>
+        {plat.adminCodeSet ? (
+          <TouchableOpacity
+            style={[styles.miniBtn, styles.miniNo, { alignSelf: 'flex-start', marginTop: 12 }]}
+            onPress={disableAdminCode}
+          >
+            <Text style={styles.miniBtnText}>Désactiver le code admin</Text>
+          </TouchableOpacity>
+        ) : null}
         <TouchableOpacity style={[styles.miniBtn, styles.miniOk, { alignSelf: 'flex-start', marginTop: 14 }]} onPress={savePlat}>
           <Text style={styles.miniBtnText}>Enregistrer les paramètres</Text>
         </TouchableOpacity>
