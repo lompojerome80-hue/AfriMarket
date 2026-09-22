@@ -27,6 +27,9 @@ DROP POLICY IF EXISTS "ecriture_avis"       ON avis;
 DROP POLICY IF EXISTS "ecriture_passwords"  ON boutique_passwords;
 DROP POLICY IF EXISTS "ecriture_campagnes"  ON campagnes;
 DROP POLICY IF EXISTS "lecture_publique_campagnes" ON campagnes;
+-- Nom réel trouvé sur le projet djqtznsfjgolnifbjovn → acxbdhdpmdasrdxwllgi :
+-- la policy "Campagnes acces public" (cmd ALL) est le trou d'écriture actif.
+DROP POLICY IF EXISTS "Campagnes acces public" ON campagnes;
 
 -- ============ 2) Lecture publique SEULEMENT (catalogue) ============
 DROP POLICY IF EXISTS "lecture_publique_boutiques" ON boutiques;
@@ -63,25 +66,40 @@ REVOKE INSERT, UPDATE, DELETE ON avis        FROM anon, authenticated;
 REVOKE INSERT, UPDATE, DELETE ON campagnes   FROM anon, authenticated;
 -- SELECT reste autorisé via les policies (catalogue public sauf boutique_passwords)
 
--- ============ 5) Masquer la colonne sensible des avis ============
--- user_key identifie qui a posté un avis (info perso) : inutile pour l'anonyme.
-REVOKE SELECT (user_key) ON avis FROM anon, authenticated;
+-- ============ 5) Aucune colonne sensible à masquer sur avis ============
+-- Schéma réel : avis(id, boutique_id, nom, note, comment, created_at).
+-- Pas de colonne user_key → rien à REVOKE de plus (nom = nom d'affichage
+-- choisi par l'auteur, assumé public comme pour n'importe quel commentaire).
 
--- ============ 6) RENFORCEMENT DES RPC (actions avant RUN) ============
--- NOTE : les corps de fonctions ne sont pas sur le disque du projet
--- (supabase-schema.sql absent) — impossible de fournir le SQL définitif.
--- Avant de réactiver toute mutation côté Supabase, appliquer MANUELLEMENT :
+-- ============ 6) RPC — inventaire RÉEL du projet (28/09/2026) ============
+-- Requêté via la Management API (pg_proc + has_function_privilege).
+-- Toutes sont SECURITY DEFINER, VOLATILE, EXECUTE ouvert à anon + authenticated :
 --
---   1. ALTER FUNCTION public.update_product_stock(...) SECURITY DEFINER;
---      → exigent un argument secret (ex. p_password TEXT) et vérifient
---        le hash de la boutique (fichier boutique_passwords) AVANT écriture.
---   2. idem pour update_product_price et toutes les fonctions de mutation.
---   3. REVOKE EXECUTE ON FUNCTION public.update_product_stock FROM anon, authenticated;
---      REVOKE EXECUTE ON FUNCTION public.update_product_price FROM anon, authenticated;
---      (re-granter EXECUTE UNIQUEMENT aux fonctions sans effet de bord)
---   4. Révoquer EXECUTE de TOUTE fonction dont le client n'a pas besoin.
+--   check_boutique_password(p_slug, p_password)      → authentification boutique ✅
+--   add_product_secure(p_slug, p_password, ...)      → ajout produit (preuve mdp) ✅
+--   delete_product_secure(p_product_id, p_slug, p_password) → suppression (mdp) ✅
+--   set_boutique_password(p_boutique_id, p_password) → ⚠️ change le mdp SANS
+--       vérifier le mdp courant → un anon connaissant l'id peut verrouiller une
+--       boutique. App utilisée uniquement à la création (juste après l'insert).
+--       À terme : exiger le mdp courant (ou vérifier un champ owner dans
+--       la session) pour les mises à jour.
+--   record_sale(p_product_id, p_qty, p_revenue)      → ⚠️ AUCUNE preuve :
+--       un anon peut gonfler ventes/revenus de n'importe quelle boutique.
+--       JAMAIS appelé par l'app mobile → EXECUTE révoqué ci-dessous.
 --
--- Tant que ces RPC acceptent d'écrire sans preuve d'authentification,
--- l'écriture Supabase reste une attaque possible : la contre-mesure active
--- (ANONYME + app local-first, RLS en place, sync serveur) couvre l'application.
+-- ABSENTES alors que l'app les appelle (src/lib/boutique.js) :
+--   update_product_stock / update_product_price → « function does not exist ».
+--   Les créer UNIQUEMENT comme SECURITY DEFINER exigeant p_password (hash
+--   comparé via boutique_passwords) AVANT écriture, puis REVOKE EXECUTE anon.
+--
+-- Application immédiate (sûre, idempotente) :
+-- NB : les fonctions du schéma public ont un EXECUTE par défaut à PUBLIC ;
+-- il faut révoquer PUBLIC en plus des rôles (sinon le grant hérité demeure).
+REVOKE EXECUTE ON FUNCTION public.record_sale(uuid, integer, numeric) FROM anon, authenticated, PUBLIC;
+
+-- ============ 7) Synthèse ============
+-- Écritures directes (insert/update/delete) : REFUSÉES sur les 5 tables
+-- (RLS + REVOKE anon/authenticated). Noter que l'app tente quand même des
+-- écritures directes (campagnes, avis, produits…) : elles échouent côté
+-- Supabase et sont couvertes par le fallback local-first + sync serveur.
 -- ============================================================
