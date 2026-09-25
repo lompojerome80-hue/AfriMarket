@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Image, StyleSheet, Animated, Easing, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { getCampaignsLocal, pickCampaignForUser, incrementCampaignVues } from '../lib/campaigns';
 import { getCurrentUser } from '../lib/auth';
@@ -11,6 +12,7 @@ export default function SplashScreen({ onDone, onAdPress }) {
   const [adLink, setAdLink] = useState(null);
   const progress = useRef(new Animated.Value(0)).current;
   const finishRef = useRef(false);
+  const insets = useSafeAreaInsets();
 
   const finish = () => {
     if (!finishRef.current) {
@@ -104,14 +106,14 @@ export default function SplashScreen({ onDone, onAdPress }) {
       ) : null}
 
       {isAd ? (
-        <View style={styles.skipWrap}>
+        <View style={[styles.skipWrap, { top: insets.top + 12 }]}>
           <TouchableOpacity style={styles.skipBtn} onPress={finish} activeOpacity={0.8}>
             <Text style={styles.skipText}>⏭ Passer</Text>
           </TouchableOpacity>
         </View>
       ) : null}
 
-      <View style={[styles.bottom, splashPhoto ? styles.bottomOverPhoto : null]}>
+      <View style={[styles.bottom, splashPhoto ? styles.bottomOverPhoto : null, { paddingBottom: splashPhoto ? (insets.bottom > 0 ? insets.bottom + 16 : 40) : 56 }]}>
         {isAd ? (
           <TouchableOpacity style={styles.ctaBtn} onPress={handleAdTap} activeOpacity={0.85}>
             <Text style={styles.ctaBtnText}>🛍️ Voir la boutique</Text>

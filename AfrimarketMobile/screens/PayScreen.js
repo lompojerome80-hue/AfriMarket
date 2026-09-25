@@ -139,9 +139,6 @@ export default function PayScreen() {
           qte: Math.max(1, Number(it.qty) || 1),
         })),
       ];
-      if (promo) {
-        basket.push({ id: 'promo', name: `Code promo ${promo.code}`, prixUnitaire: -Math.round(Number(promo.remise) || 0), qte: 1 });
-      }
       if (livraisonFee > 0) {
         basket.push({ id: 'livraison', name: `Livraison ${zone ? zone.ville : ''}`, prixUnitaire: Math.round(livraisonFee), qte: 1 });
       }
@@ -157,6 +154,7 @@ export default function PayScreen() {
         designation: 'Commande AfriMarket',
         customerName: user.name || 'Client',
         items: basket,
+        promoCode: promo && promo.remise > 0 ? promo.code : null,
       });
       if (init && init.ok) {
         setRemoteMode(true);
@@ -165,10 +163,52 @@ export default function PayScreen() {
         if (init.mustBeRedirected && init.paymentUrl) openPaymentUrl(init.paymentUrl);
       } else if (init && init.ok === false) {
         setStage('init');
+        if (init.code === 'PRICE_NOT_FOUND' || init.code === 'PRICE_SOURCE_UNAVAILABLE') {
+          Alert.alert(
+            'Article non vérifiable',
+            "Un article de votre panier n'existe pas encore dans la base des prix de la plateforme, ou son prix est momentanément indisponible. Le paiement est refusé par sécurité : aucun montant ne peut être inventé.\n\nContactez le vendeur pour recréer l'article, ou composez une commande avec des articles déjà en ligne.",
+            [{ text: 'OK' }]
+          );
+          return;
+        }
         Alert.alert(
           'Paiement refusé par le serveur',
           (init.error || 'La passerelle de paiement a refusé la demande.') +
             ' Aucun paiement simulé ne sera appliqué.',
+          [{ text: 'OK' }]
+        );
+        return;
+      } else if (init === null) {
+        /* Serveur injoignable (panne réseau / serveur non lancé / URL erronée).
+         * Cas calqué sur le bloc « serveur a refusé » :
+         *  - __DEV__ (app en cours de dev via Metro) : on avertit puis on poursuit
+         *    en simulation locale pour ne pas bloquer la mise au point.
+         *  - build de prod (EAS/expo export) : on bloque — jamais de paiement
+         *    simulé quand le vrai serveur est censé être joignable. */
+        if (__DEV__) {
+          Alert.alert(
+            'Serveur de paiement injoignable',
+            "Impossible de joindre le serveur de paiement. En mode démo (DEV), on bascule sur un paiement simulé local.",
+            [{ text: 'OK' }]
+          );
+          setRemoteMode(false);
+          setOtpCode(String(Math.floor(1000 + Math.random() * 9000)));
+        } else {
+          setStage('init');
+          Alert.alert(
+            'Paiement indisponible',
+            'Impossible de joindre le serveur de paiement, réessayez plus tard. Aucun paiement ne sera appliqué.',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+      } else if (!__DEV__) {
+        /* Réponse inattendue du serveur (ni ok:true, ni refus, ni null) en prod :
+         * on refuse plutôt que de laisser partir un paiement simulé. */
+        setStage('init');
+        Alert.alert(
+          'Paiement indisponible',
+          'Réponse inattendue du serveur de paiement, réessayez plus tard. Aucun paiement ne sera appliqué.',
           [{ text: 'OK' }]
         );
         return;
@@ -193,6 +233,17 @@ export default function PayScreen() {
           : `Un nouveau code a été envoyé par SMS au ${phone}.`);
         return;
       }
+    }
+    /* Aucun code renvoyé par le serveur (panne réseau ou refus) :
+     * en prod on refuse — un code simulé ferait valider un paiement gratuit.
+     * En DEV, on garde la simulation locale pour la mise au point. */
+    if (!__DEV__) {
+      Alert.alert(
+        'Paiement indisponible',
+        "Le serveur de paiement n'a pas renvoyé de nouveau code, réessayez plus tard.",
+        [{ text: 'OK' }]
+      );
+      return;
     }
     const code = String(Math.floor(1000 + Math.random() * 9000));
     setOtpCode(code);

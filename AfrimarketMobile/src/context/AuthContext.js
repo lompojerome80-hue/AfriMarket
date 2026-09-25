@@ -83,8 +83,8 @@ if (u) {
     return r;
   }, [applyUser]);
 
-  const doLoginAdmin = useCallback(async () => {
-    const r = await loginAdminSimulated();
+const doLoginAdmin = useCallback(async (code) => {
+    const r = await loginAdminSimulated(code);
     if (r.ok && r.user) await applyUser(r.user);
     return r;
   }, [applyUser]);

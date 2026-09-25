@@ -24,6 +24,7 @@ import { getUnreadTotal } from '../src/lib/messaging';
 import { fcfa } from '../src/lib/cart';
 import { t, LANGS, setLang, getLang, initI18n } from '../src/lib/i18n';
 import AppBar from '../src/components/AppBar';
+import AdminCodePrompt from '../src/components/AdminCodePrompt';
 import { COLORS, SIZES } from '../src/constants/theme';
 
 const docStatusLabel = {
@@ -44,6 +45,8 @@ export default function AccountScreen({ onUserChange }) {
   const [otpCode, setOtpCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [adminPrompt, setAdminPrompt] = useState(false);
+  const [adminBusy, setAdminBusy] = useState(false);
 
   const [dues, setDues] = useState({ montant: 0, blocked: false });
   const [ordersCount, setOrdersCount] = useState(0);
@@ -222,8 +225,15 @@ export default function AccountScreen({ onUserChange }) {
     refresh(res.user);
   };
 
-  const handleAdminDemo = async () => {
-    const res = await loginAdminSimulated();
+  const handleAdminDemo = async (adminCode) => {
+    setAdminBusy(true);
+    const res = await loginAdminSimulated(adminCode);
+    setAdminBusy(false);
+    setAdminPrompt(false);
+    if (!res.ok) {
+      Alert.alert('Accès refusé', res.error);
+      return;
+    }
     applyUser(res.user);
     refresh(res.user);
   };
@@ -498,13 +508,22 @@ export default function AccountScreen({ onUserChange }) {
               <TouchableOpacity style={styles.socialBtn} onPress={handleSendOtp}>
                 <Text style={styles.socialBtnText}>Continuer avec WhatsApp (code OTP)</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialBtnGhost} onPress={handleAdminDemo}>
-                <Text style={styles.socialBtnText}>Console admin (démo)</Text>
+              <TouchableOpacity style={styles.socialBtn} onPress={handleGoogle} activeOpacity={0.7}>
+                <Text style={styles.socialBtnText}>👋 Continuer en invité (sans compte)</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialBtnGhost} onPress={() => setAdminPrompt(true)}>
+                <Text style={styles.socialBtnText}>Console admin 🔐</Text>
               </TouchableOpacity>
             </>
           )}
           <View style={{ height: 20 }} />
         </ScrollView>
+        <AdminCodePrompt
+          visible={adminPrompt}
+          busy={adminBusy}
+          onCancel={() => setAdminPrompt(false)}
+          onSubmit={handleAdminDemo}
+        />
       </View>
     );
   }

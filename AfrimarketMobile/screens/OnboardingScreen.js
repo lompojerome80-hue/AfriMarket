@@ -8,6 +8,7 @@ import {
 } from '../src/lib/auth';
 import { useAuth } from '../src/context/AuthContext';
 import { COLORS } from '../src/constants/theme';
+import AdminCodePrompt from '../src/components/AdminCodePrompt';
 
 const ROLE_HELP = {
   Acheteur: 'Parcourez les boutiques, commandez et payez vos achats.',
@@ -64,6 +65,8 @@ export default function OnboardingScreen({ onLoggedIn }) {
   const [showNewConfirm, setShowNewConfirm] = useState(false);
   const [showCode, setShowCode] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [adminPrompt, setAdminPrompt] = useState(false);
+  const [adminBusy, setAdminBusy] = useState(false);
 
   const submit = async () => {
     if (!phone.trim() || !password) {
@@ -105,9 +108,12 @@ export default function OnboardingScreen({ onLoggedIn }) {
     onLoggedIn(res.user);
   };
 
-  const handleAdminDemo = async () => {
-    const res = await loginAdmin();
-    if (!res.ok) { Alert.alert('Connexion impossible', res.error); return; }
+  const handleAdminDemo = async (adminCode) => {
+    setAdminBusy(true);
+    const res = await loginAdmin(adminCode);
+    setAdminBusy(false);
+    setAdminPrompt(false);
+    if (!res.ok) { Alert.alert('Accès refusé', res.error); return; }
     onLoggedIn(res.user);
   };
 
@@ -336,14 +342,20 @@ export default function OnboardingScreen({ onLoggedIn }) {
 
               <TouchableOpacity
                 style={styles.adminDemoBtn}
-                onPress={handleAdminDemo}
+                onPress={() => setAdminPrompt(true)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.adminDemoBtnText}>Console admin (démo)</Text>
+                <Text style={styles.adminDemoBtnText}>Console admin 🔐</Text>
               </TouchableOpacity>
             </>
           )}
         </ScrollView>
+        <AdminCodePrompt
+          visible={adminPrompt}
+          busy={adminBusy}
+          onCancel={() => setAdminPrompt(false)}
+          onSubmit={handleAdminDemo}
+        />
       </View>
     </KeyboardAvoidingView>
   );

@@ -109,8 +109,15 @@ async function _createSupabase(data, slug) {
   };
   let shop = null;
   if (data.ville) {
+    /*
+     * La colonne `ville` n'existe pas encore dans `boutiques` : cet insert
+     * échoue donc systématiquement et la ville est perdue sans bruit. Le
+     * repli ci-dessous crée la boutique sans elle. Ajouter la colonne (SQL
+     * dans le README de la session) réactive la ville automatiquement.
+     */
     const first = await supabase.from('boutiques').insert({ ...base, ville: data.ville }).select().single();
     if (!first.error) shop = first.data;
+    else console.warn('boutiques.ville indisponible, creation sans ville:', first.error.message);
   }
   if (!shop) {
     const retry = await supabase.from('boutiques').insert(base).select().single();
@@ -124,10 +131,27 @@ async function _createSupabase(data, slug) {
   if (pwErr) console.error('set_boutique_password:', pwErr);
 
   if (data.produits?.length) {
-    const rows = data.produits.map(p => ({
-      boutique_id: shop.id, title: p.title, price: p.price, img: p.img, category: p.category || null,
+    /*
+     * Schéma réel de `produits` : boutique_id, title, price, img, old_price,
+     * stock, vendus, revenu. Il n'existe pas de colonne `category` : l'envoyer
+     * faisait échouer tout l'insert, et l'erreur n'étant pas vérifiée, la
+     * boutique était créée sans ses produits, sans aucun message.
+     */
+    const rows = (data.produits || []).map(p => ({
+      boutique_id: shop.id,
+      title: p.title,
+      price: p.price,
+      img: p.img || (Array.isArray(p.photos) ? p.photos[0] : null) || null,
+      old_price: p.oldPrice != null ? p.oldPrice : null,
+      stock: p.stock != null ? p.stock : null,
+      vendus: 0,
+      revenu: 0,
     }));
-    await supabase.from('produits').insert(rows);
+    const { error: prodErr } = await supabase.from('produits').insert(rows);
+    if (prodErr) {
+      console.error('insert produits:', prodErr.message);
+      throw prodErr;
+    }
   }
   return slug;
 }

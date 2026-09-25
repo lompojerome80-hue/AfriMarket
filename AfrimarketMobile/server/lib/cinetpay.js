@@ -145,6 +145,31 @@ async function initTransaction(input, hooks) {
   };
 }
 
+/*
+ * Consommation idempotente d'un code promo lors du passage à SUCCESS.
+ * Le drapeau couponConsumedAt empêche le double comptage si l'OTP et le
+ * webhook reviennent tous les deux. Un échec n'annule pas le paiement déjà
+ * encaissé : il est journalisé pour reconciliation.
+ */
+async function consumeCouponOnce(tx, store) {
+  if (!tx || !tx.promoCode || tx.couponConsumedAt) return;
+  const priceCheck = require('./priceCheck');
+  const result = await priceCheck.consumeCoupon(tx.promoCode);
+  if (result.consumed) {
+    tx.couponConsumedAt = new Date().toISOString();
+    delete tx.couponConsumeError;
+  } else {
+    tx.couponConsumeError = result.reason || 'echec inconnu';
+    console.error('[coupon] consommation impossible', tx.promoCode, tx.couponConsumeError);
+  }
+  // patch() et non upsert() : on ne réécrit que les champs du coupon, donc
+  // un statut écrit entre-temps par le webhook n'est pas écrasé.
+  await store.patch(tx.merchantTransactionId, {
+    couponConsumedAt: tx.couponConsumedAt,
+    couponConsumeError: tx.couponConsumeError,
+  });
+}
+
 async function verifyOtp({ merchantTransactionId, otpCode }) {
   const store = require('./store');
   const tx = store.getByMerchant(merchantTransactionId);
@@ -157,7 +182,8 @@ async function verifyOtp({ merchantTransactionId, otpCode }) {
     }
     tx.status = 'SUCCESS';
     tx.verifiedAt = new Date().toISOString();
-    store.upsert(tx);
+    await store.upsert(tx);
+    await consumeCouponOnce(tx, store);
     return { ok: true, status: 'SUCCESS', merchantTransactionId };
   }
 
@@ -167,7 +193,8 @@ async function verifyOtp({ merchantTransactionId, otpCode }) {
   const ok = status === 'SUCCESS';
   if (ok) {
     tx.status = status;
-    store.upsert(tx);
+    await store.upsert(tx);
+    await consumeCouponOnce(tx, store);
   }
   return { ok, status: status || 'FAILED', merchantTransactionId };
 }
@@ -180,7 +207,7 @@ async function resendOtp({ merchantTransactionId }) {
   if (getMode() === 'mock') {
     const code = randomOtp();
     tx.otpCode = code;
-    store.upsert(tx);
+    await store.upsert(tx);
     return { ok: true, otpCode: code };
   }
   // Production : CinetPay renvoie le code par SMS. A déclencher selon sa doc.
@@ -200,7 +227,7 @@ async function getStatus(merchantTransactionId) {
     const status = await realStatus(tx.transactionId, token);
     if (status && status !== tx.status) {
       tx.status = status;
-      store.upsert(tx);
+      await store.upsert(tx);
     }
     return { merchantTransactionId, status: tx.status || 'PENDING', mode: 'api' };
   } catch {
@@ -271,7 +298,8 @@ async function verifyWebhook({ body, rawBody, xToken, notifyToken }) {
 
   tx.status = 'SUCCESS';
   tx.webhookAt = new Date().toISOString();
-  store.upsert(tx);
+  await store.upsert(tx);
+  await consumeCouponOnce(tx, store);
   return { ok: true, processed: true, tx };
 }
 

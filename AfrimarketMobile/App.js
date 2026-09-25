@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, AppState } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, useFocusEffect, createNavigationContainerRef } from '@react-navigation/native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
@@ -89,6 +90,7 @@ function MainTabs({ user: userProp, onUserChange }) {
     }, [userProp])
   );
 
+  const insets = useSafeAreaInsets();
   const courierOnly = role === 'Livreur';
 
   return (
@@ -101,8 +103,8 @@ function MainTabs({ user: userProp, onUserChange }) {
           backgroundColor: C.navDark,
           borderTopColor: '#1E1D3E',
           borderTopWidth: 1,
-          height: 88,
-          paddingBottom: 28,
+          height: 60 + insets.bottom,
+          paddingBottom: Math.max(insets.bottom, 24),
           paddingTop: 8,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
@@ -175,9 +177,11 @@ function MainTabs({ user: userProp, onUserChange }) {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
 

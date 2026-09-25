@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
 import secure, { SECURE_KEYS } from './secure';
+import { verifyMasterAdminCode } from './settings';
 
 const USER_KEY = SECURE_KEYS.session;
 const ACCOUNTS_KEY = 'afrimarket_accounts';
@@ -394,9 +395,10 @@ export async function loginGoogleSimulated(role) {
   return { ok: true, user, simulated: true };
 }
 
-export async function loginAdminSimulated() {
-  if (typeof __DEV__ !== 'undefined' && !__DEV__) {
-    return { ok: false, error: 'Connexion admin désactivée (hors développement)' };
+export async function loginAdminSimulated(code) {
+  const ok = await verifyMasterAdminCode(code);
+  if (!ok) {
+    return { ok: false, error: 'Code admin invalide.' };
   }
   const user = {
     key: userKey({ name: 'admin' }),

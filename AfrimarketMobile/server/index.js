@@ -53,6 +53,7 @@ if (cinetpay.getMode() === 'api') {
 const store = require('./lib/store');
 const pushStore = require('./lib/pushStore');
 const syncStore = require('./lib/syncStore');
+const priceCheck = require('./lib/priceCheck');
 
 const PORT = Number(process.env.PORT || 4000);
 
@@ -210,11 +211,31 @@ const server = http.createServer(async (req, res) => {
       }
       const merchantTransactionId = String(parsed.merchantTransactionId).slice(0, 30);
       const items = Array.isArray(parsed.items) ? parsed.items : [];
-      if (cinetpay.getMode() === 'api' && !items.length) {
+      /*
+       * Invariant de securite, valable meme en mode mock : aucun paiement ne
+       * peut etre accepte sans panier, sinon un client pourrait declarer
+       * amount:1 et obtenir une transaction "gratuite". L'unique exception est
+       * l'echappatoire de developpement MOCK_ALLOW_EMPTY_BASKET, volontairement
+       * explicite et a ne jamais activer en production.
+       */
+      const allowEmptyBasket = process.env.MOCK_ALLOW_EMPTY_BASKET === 'true';
+      if (!items.length && !allowEmptyBasket) {
         return json(res, 400, { ok: false, error: 'Montant non sourçable : items du panier requis' });
       }
       if (items.length) {
-        const totalRecalcule = items.reduce((s, it) => s + Math.round(Number(it.prixUnitaire || it.price || 0) * Number(it.qte || it.quantity || 0)), 0);
+        /*
+         * Montant = somme des prix RÉELS relus dans Supabase (priceCheck).
+         * Le prix annoncé par l'app est ignoré pour les produits ; seul le
+         * total déclaré est comparé. Source indisponible ou produit
+         * introuvable -> refus (fail-closed), jamais de repli silencieux.
+         */
+        let totalRecalcule;
+        try {
+          const checked = await priceCheck.computeRealTotal(items, { promoCode: parsed.promoCode || null });
+          totalRecalcule = checked.total;
+        } catch (e) {
+          return json(res, 409, { ok: false, error: e.message, code: e.code || 'PRICE_CHECK_FAILED' });
+        }
         const declared = Math.round(Number(parsed.amount));
         if (totalRecalcule !== declared) {
           return json(res, 400, { ok: false, error: 'Montant incohérent avec le panier (' + declared + ' vs ' + totalRecalcule + ')' });
@@ -250,7 +271,7 @@ const server = http.createServer(async (req, res) => {
         },
         { raw }
       );
-      store.upsert({
+      await store.upsert({
         merchantTransactionId,
         transactionId: init.transactionId,
         status: init.status,
@@ -264,6 +285,8 @@ const server = http.createServer(async (req, res) => {
         otpCode: init.otpCode,
         notifyToken: init.notifyToken,
         paymentUrl: init.paymentUrl || null,
+        promoCode: parsed.promoCode ? String(parsed.promoCode).trim().toUpperCase() : null,
+        couponConsumedAt: null,
         createdAt: new Date().toISOString(),
       });
       const { otpCode, notifyToken, ...publicInit } = init;

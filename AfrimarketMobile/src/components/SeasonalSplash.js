@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AppState, View, Image, StyleSheet, Animated, Easing, Text, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getCampaignsLocal, pickCampaignForUser, incrementCampaignVues } from '../lib/campaigns';
 import { getCurrentUser } from '../lib/auth';
 import { getTrackingProfile } from '../lib/tracking';
@@ -15,6 +16,7 @@ export default function SeasonalSplash({ trigger, onAdPress, suppressTrigger }) 
   const countedRef = useRef(null);
   const shownKeyRef = useRef(null);
   const lastShownAtRef = useRef(0);
+  const insets = useSafeAreaInsets();
 
   const showSplash = () => {
     if (visible) return;
@@ -133,8 +135,8 @@ export default function SeasonalSplash({ trigger, onAdPress, suppressTrigger }) 
         </View>
       </View>
 
-      <TouchableOpacity style={styles.skipBtn} onPress={hide} activeOpacity={0.8}>
-        <Text style={styles.skipText}>⏭ Passer</Text>
+      <TouchableOpacity style={[styles.skipBtn, { top: insets.top + 10 }]} onPress={hide} activeOpacity={0.8}>
+        <Text style={styles.skipText}>Skip</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -157,7 +159,7 @@ const styles = StyleSheet.create({
   },
   badgeWrap: {
     position: 'absolute',
-    bottom: 90,
+    bottom: 24,
     alignSelf: 'center',
   },
   badge: {
@@ -174,7 +176,7 @@ const styles = StyleSheet.create({
   },
   linkCtrlWrap: {
     position: 'absolute',
-    bottom: 200,
+    bottom: 20,
     alignSelf: 'center',
   },
   linkCtrl: {
